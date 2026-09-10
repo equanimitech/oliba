@@ -9,6 +9,35 @@ export const meta = {
   ],
 }
 
+// --- Args normalization ---
+// Handle: plain string ("topic"), object {topic}, or object {topic, existingProject: {id}}
+// The skill passes full args; direct Workflow() calls may pass a string or partial object.
+
+if (typeof args === 'string') {
+  args = { topic: args }
+}
+if (!args.topic) {
+  throw new Error('deep-lesson requires a topic — pass it as args or args.topic')
+}
+
+// When existingProject is just {id: "..."}, load the full project from disk via an agent.
+if (args.existingProject && args.existingProject.id && !args.existingProject.nodes) {
+  const loaded = await agent(
+    `Read the lull-n-learn project with ID "${args.existingProject.id}" from disk.
+
+Run this command:
+\`\`\`bash
+cat ~/.lull-n-learn/projects.json | python3 -c "import json,sys; d=json.load(sys.stdin); p=d.get('${args.existingProject.id}'); print(json.dumps(p) if p else 'null')"
+\`\`\`
+
+Return the FULL project JSON as-is. If not found, return null.`,
+    { label: 'load-project', schema: { type: 'object', properties: { project: {} }, required: ['project'] } }
+  )
+  if (loaded && loaded.project) {
+    args.existingProject = loaded.project
+  }
+}
+
 const CALIBRATION_SCHEMA = {
   type: 'object',
   properties: {
@@ -378,7 +407,7 @@ CARD GENERATION RULES:
   - analysis: compare/contrast, edge cases, "why not Y instead?" (1-2 cards)
 - Each card: one atomic idea. The front is a question that demands production (not recognition).
 - The back is a concise, correct answer (2-4 sentences max).
-- Tag each with: project:PROJECT_ID, node:${node.id}, ${args.topic.toLowerCase().replace(/\\s+/g, '-')}
+- Tag each with: project:PROJECT_ID, node:${node.id}, ${(args.topic || '').toLowerCase().replace(/\\s+/g, '-')}
 - Skip anything covered by existing card fronts.
 - Card fronts and backs can contain markdown (links, code blocks, emphasis).
 
