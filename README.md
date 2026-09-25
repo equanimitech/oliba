@@ -17,8 +17,8 @@ Local-first. Anti-guilt.
 ## How it works
 
 1. **Map.** Run `/oliba:syllabus <topic>`: the agent maps the territory into ordered modules with prerequisites and starter cards, and publishes the map as a study guide.
-2. **Learn.** Run `/oliba:teach <topic>`: the agent teaches the next piece on the map through a Socratic walk-through, researching it only when you reach it.
-3. **Study.** Run `/oliba:study` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules.
+2. **Learn.** Run `/oliba:teach <topic>` (no map needed). The first time, it asks why you're learning it, which language to teach you in, and which language the field's own terms stay in. Each sitting wins one skill: the agent asks what you think before telling you anything, then probes your answers until you reach the idea yourself. It writes the sitting up as one self-contained HTML lesson with think-first prompts and instant-feedback quizzes, which opens in your browser and can be shared as a single file. Quiz items and corrected misconceptions become cards. `/oliba:teach <topic> ?` brings questions back to the terminal.
+3. **Study.** Run `/oliba:study` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules. `/oliba:study grill me on <topic>` drills your recorded misconceptions and weak cards: explain it back, then why, what-if and a fresh case.
 4. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. Answer it in place with `/oliba:study <your answer>`. One cue, never a count.
 
 ## Commands
@@ -26,8 +26,10 @@ Local-first. Anti-guilt.
 | Command | What it does |
 |---|---|
 | `/oliba:syllabus <topic>` | Map a topic: modules, prerequisites, starter cards |
-| `/oliba:teach <topic>[: <node>]` | Learn one piece at a time, in prerequisite order |
+| `/oliba:teach <topic>[: <node>]` | One skill per sitting by Socratic questions, written up as an HTML lesson |
+| `/oliba:teach <topic> ? [question]` | Socratic follow-up questions in the terminal |
 | `/oliba:study [tag \| project \| answer]` | FSRS retrieval session, or score the status-line cue |
+| `/oliba:study grill me on <topic>` | Drill recorded misconceptions and weak cards |
 | `/oliba:config` | Settings and status line setup |
 
 ## Status line (optional)
@@ -44,7 +46,21 @@ See [THEORY.md](THEORY.md) for how the plugin maps to Scott Young's 9 Ultralearn
 
 All data lives in `~/.oliba/` as plain JSON. No account, no server, no sync. You own your learning state.
 
+Lessons are files too: `~/.oliba/lessons/<topic>/` holds each lesson, an `index.html` linking them, and the topic's `glossary.html`; `~/.oliba/glossary.html` gathers every topic's terms. Each lesson carries its own styles and script, so it works offline and can be sent on its own. Quiz answers in the page stay in the page: nothing is sent anywhere.
+
 Override the data directory with `OLIBA_DIR` for testing or custom locations.
+
+## Acknowledgements
+
+The way `/teach` works owes a great deal to **Matt Pocock** and his [`/teach` skill](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach), from his MIT-licensed [skills](https://github.com/mattpocock/skills) collection. Using it on a real learning need showed us what oliba was missing. From him we learned:
+
+- **Mission first.** Ask *why* before teaching anything, and aim every lesson at that goal.
+- **Learning records.** Keep what the learner has shown (priors, corrected misconceptions, insights) as evidence-gated records that can be superseded, and use them to pick the next lesson in the zone of proximal development.
+- **One lesson, one win.** A short, single-file HTML lesson per skill, with quizzes that give instant feedback in the page.
+- **A glossary that is earned.** Terms join only once the learner uses them correctly, with the names to avoid listed beside them.
+- **Grilling**, from his separate [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) and [`grill-me`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me) skills: relentless questioning as a way to stress-test understanding. oliba's grill mode points it at your recorded misconceptions.
+
+oliba's code, styles and wording are its own, written to fit its spaced-repetition core; the ideas above are his. Thank you, Matt.
 
 ## License
 

@@ -48,6 +48,8 @@ One exchange, no ceremony. The status-line card is `cardId`; the user's answer i
 
 The Socratic drill: attack the weakest points until they hold. Not an FSRS session: nothing is rated, and answers are never scored aloud.
 
+*Grilling is learned from Matt Pocock's `grilling` skill: https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling (MIT). Here it is aimed at recorded misconceptions (Ultralearning's Drill principle).*
+
 1. Get the targets. `target` is `<project>` or `<project>: <node>`; pass the part before `:`:
 
    ```bash
