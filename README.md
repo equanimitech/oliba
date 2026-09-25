@@ -30,6 +30,7 @@ Local-first. Anti-guilt.
 | `/oliba:teach <topic> ? [question]` | Socratic follow-up questions in the terminal |
 | `/oliba:study [tag \| project \| answer]` | FSRS retrieval session, or score the status-line cue |
 | `/oliba:study grill me on <topic>` | Drill recorded misconceptions and weak cards |
+| `/oliba:study results [prompt]` | Rate a lesson's cards from its saved quiz results |
 | `/oliba:config` | Settings and status line setup |
 
 ## Status line (optional)
@@ -46,7 +47,7 @@ See [THEORY.md](THEORY.md) for how the plugin maps to Scott Young's 9 Ultralearn
 
 All data lives in `~/.oliba/` as plain JSON. No account, no server, no sync. You own your learning state.
 
-Lessons are files too: `~/.oliba/lessons/<topic>/` holds each lesson, an `index.html` linking them, and the topic's `glossary.html`; `~/.oliba/glossary.html` gathers every topic's terms. Each lesson carries its own styles and script, so it works offline and can be sent on its own. Quiz answers in the page stay in the page: nothing is sent anywhere.
+Lessons are files too: `~/.oliba/lessons/<topic>/` holds each lesson, an `index.html` linking them, and the topic's `glossary.html`; `~/.oliba/glossary.html` gathers every topic's terms. Each lesson carries its own styles and script, so it works offline and can be sent on its own. The page stores nothing and sends nothing. The button at the end downloads your first attempts as a small JSON file and copies an `/oliba:study results …` prompt that carries them. Run `/oliba:study results` (or paste the prompt) and the lesson's cards are rated from them; the downloaded file is then deleted.
 
 Override the data directory with `OLIBA_DIR` for testing or custom locations.
 

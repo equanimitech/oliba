@@ -20,6 +20,9 @@
     return norm(given) === norm(answer);
   };
 
+  /** First attempt per quiz id, in memory only: later tries never change it. @type {Map<string, boolean>} */
+  const firstAttempts = new Map();
+
   for (const quiz of document.querySelectorAll('fieldset.quiz')) {
     const answer = quiz.dataset.answer ?? '';
     const tolerance = Number(quiz.dataset.tolerance ?? 0);
@@ -29,7 +32,9 @@
 
     /** @param {HTMLButtonElement} button */
     const judge = (button) => {
+      if (input && !input.value.trim()) return;
       const right = matches(input ? input.value : button.value, answer, tolerance);
+      if (quiz.id && !firstAttempts.has(quiz.id)) firstAttempts.set(quiz.id, right);
       const reason = input
         ? (right ? quiz.dataset.why : quiz.dataset.hint) ?? ''
         : button.dataset.why ?? '';
@@ -50,4 +55,54 @@
       if (event.key === 'Enter' && button) judge(button);
     });
   }
+
+  // Save my results: download the first attempts as JSON and copy a /study
+  // prompt that carries them inline, in case the download is blocked.
+  // A blob: URL and the clipboard only; nothing leaves the machine, nothing is stored.
+  const main = document.querySelector('main');
+  const save = document.querySelector('button.save-results');
+  const saveOutput = save?.parentElement?.querySelector('output');
+  if (!main || !save || !saveOutput) return;
+  saveOutput.setAttribute('aria-live', 'polite');
+
+  /** @param {string} text */
+  const copy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch { /* shown below instead */ }
+      area.remove();
+      return ok;
+    }
+  };
+
+  save.addEventListener('click', async () => {
+    const { project = '', lesson = '', results = 'oliba-results.json' } = main.dataset;
+    const items = [...firstAttempts].map(([q, correct]) => ({ q, correct }));
+    const json = JSON.stringify({ lesson, project, answeredAt: new Date().toISOString(), items }, null, 2);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    link.download = results;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+
+    const prompt = `/oliba:study results ${project} ${lesson} ${items.map((i) => `${i.q}:${i.correct ? '✓' : '✗'}`).join(' ')}`.trim();
+    const copied = await copy(prompt);
+    const code = document.createElement('code');
+    code.textContent = prompt;
+    code.className = 'prompt';
+    saveOutput.replaceChildren(copied ? '✓ ⧉ ' : '⧉ ', code);
+    if (!copied) getSelection()?.selectAllChildren(code);
+  });
 })();

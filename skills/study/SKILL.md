@@ -25,6 +25,7 @@ It checks in a fixed order and prints one `mode`:
 | `filter` | A known tag or project topic | Run the session below with `--tag "<tag>"`. |
 | `cue` | A cue is showing and the text is the user's answer to it | Go to **Answer the cue**. |
 | `ask` | The text is a tag *and* a cue is showing | Ask one `AskUserQuestion`: "Answer the cue" or "Study <tag>". Then follow that row. |
+| `results` | Lesson results from the page's save button | Go to **Lesson results**. |
 | `plain` | Nothing to filter | Run the session below over every due card. If `unmatched` is set, say in one line that nothing matched it. |
 
 `due --tag` first matches card tags; if no card carries that tag, it matches project topics (case- and accent-insensitive substring) and returns that project's cards. If several projects match, it returns `{ "ambiguous": true, "projects": [{ "id", "topic" }] }` instead of cards: ask which one with `AskUserQuestion` (one option per topic), then use `--tag project:<id>` for the rest of the session.
@@ -43,6 +44,17 @@ One exchange, no ceremony. The status-line card is `cardId`; the user's answer i
    ```
 
 4. Respond in **one line**: what they got right or missed, and when it comes back (from the updated `fsrs.due`). Example: "Got ownership but missed reference validity. Back in 3 days." Do not show the front again, do not start a session, and do not mention how many cards are due. Back to work.
+
+## Lesson results
+
+A lesson's save button hands its quiz answers to FSRS: a miss rates the quiz's card `again`, a hit rates it `good`. Only the learner's first attempt at each quiz counts.
+
+- `args` holds results (`<projectId> <lesson.html> q1:✗ q2:✓ …`, the copied prompt): run
+  `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" results-import <args, each shell-quoted>`
+- `args` is empty: use the newest download, `ls -t ~/Downloads/oliba-results-*.json | head -1`, and run
+  `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" results-import --file "<that path>"`. On success the CLI deletes the file. If there is no file, say in one line to click the save button at the end of the lesson and paste the prompt it copies.
+
+It prints `{ rated, skipped }`. Cards already reviewed since the answers are skipped, so importing twice is harmless. Reply in **one line**, no counts, e.g. "Saved. The ones you missed come back sooner." If nothing was rated: "Already saved." Don't start a session.
 
 ## Grill
 
