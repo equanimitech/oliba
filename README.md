@@ -2,9 +2,9 @@
 
 Agent-native spaced repetition for Claude Code.
 
-Cards extracted from your real work sessions, reviewed on your schedule, grounded in [Scott Young's Ultralearning](https://www.scotthyoung.com/blog/2026/04/29/ultralearning-ai/).
+Map a topic, learn it one piece at a time, keep it with spaced repetition. Grounded in [Scott Young's Ultralearning](https://www.scotthyoung.com/blog/2026/04/29/ultralearning-ai/).
 
-Local-first. Anti-guilt. Zero-config.
+Local-first. Anti-guilt.
 
 ## Install
 
@@ -14,21 +14,19 @@ Local-first. Anti-guilt. Zero-config.
 
 ## How it works
 
-1. **Deep lesson.** Run `/deep-lesson <topic>`: the agent maps the territory, generates starter cards at every node, then deepens one section at a time with richer cards and a study guide.
-2. **Work normally.** When a session taught you something, run `/harvest`: the agent mines the conversation for learning moments and files card candidates into a sift queue.
-3. **Sift.** Run `/sift` to promote harvested candidates to your deck, edit them, or dismiss them. You never keep a card you didn't choose.
-4. **Study.** Run `/study` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules.
-5. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. One cue, never a count.
+1. **Map.** Run `/deep-lesson <topic>`: the agent maps the territory into ordered modules with prerequisites and starter cards, and publishes the map as a study guide.
+2. **Learn.** Run `/teach <topic>`: the agent teaches the next piece on the map through a Socratic walk-through, researching it only when you reach it.
+3. **Study.** Run `/study` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules.
+4. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. Answer it in place with `/study <your answer>`. One cue, never a count.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `/deep-lesson <topic>` | Metalearning engine: map a topic, deepen nodes, generate cards and study guide |
-| `/study` | FSRS-driven retrieval session |
-| `/sift` | Triage harvested card candidates |
-| `/card "front" "back"` | Create a card manually |
-| `/harvest` | Mine the current session for card candidates |
+| `/deep-lesson <topic>` | Map a topic: modules, prerequisites, starter cards |
+| `/teach <topic>[: <node>]` | Learn one piece at a time, in prerequisite order |
+| `/study [tag \| project \| answer]` | FSRS retrieval session, or score the status-line cue |
+| `/config` | Settings and status line setup |
 
 ## Status line (optional)
 

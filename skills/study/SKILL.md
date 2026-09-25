@@ -1,17 +1,48 @@
 ---
 name: study
-description: Run a spaced-repetition study session over due lull-n-learn cards. Use when the user runs /study, says "let's study", "quiz me", or wants to practice what they've been learning. Accepts an optional tag argument to filter by theme (e.g. /study rust, /study project:abc).
+description: Run a spaced-repetition study session over due lull-n-learn cards, or score the status-line cue. Use when the user runs /study, says "let's study", "quiz me", "answer the cue", types an answer to the status-line card, or wants to practice what they've been learning. Accepts a tag or project to filter by (e.g. /study rust, /study code de la route) or an answer to the cue (e.g. /study single ownership).
 ---
 
 # Study session
 
 An FSRS-driven retrieval session. Retrieval means production: the user answers before seeing anything. The user can stop at any time and stopping is always fine.
 
+If `node` is not found, tell the user in one line to install the Node.js LTS from nodejs.org, then restart Claude Code, and stop.
+
 ## Arguments
 
-`$ARGUMENTS` may contain a tag or a project name to filter by (e.g. `rust`, `project:abc`, `cooking`, `code de la route`). If present, pass it whole as `--tag "<argument>"` to the `due` command. If empty, fetch all due cards.
+Resolve `$ARGUMENTS` first. Never guess what they mean yourself:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-resolve "<$ARGUMENTS, shell-quoted>"
+```
+
+It checks in a fixed order and prints one `mode`:
+
+| `mode` | Meaning | Do |
+|---|---|---|
+| `grill` | "grill me on …" | Say in one line that grill mode is coming soon, then run a plain session filtered to `target` if it names a tag or project. |
+| `filter` | A known tag or project topic | Run the session below with `--tag "<tag>"`. |
+| `cue` | A cue is showing and the text is the user's answer to it | Go to **Answer the cue**. |
+| `ask` | The text is a tag *and* a cue is showing | Ask one `AskUserQuestion`: "Answer the cue" or "Study <tag>". Then follow that row. |
+| `plain` | Nothing to filter | Run the session below over every due card. If `unmatched` is set, say in one line that nothing matched it. |
 
 `due --tag` first matches card tags; if no card carries that tag, it matches project topics (case- and accent-insensitive substring) and returns that project's cards. If several projects match, it returns `{ "ambiguous": true, "projects": [{ "id", "topic" }] }` instead of cards: ask which one with `AskUserQuestion` (one option per topic), then use `--tag project:<id>` for the rest of the session.
+
+## Answer the cue
+
+One exchange, no ceremony. The status-line card is `cardId`; the user's answer is `answer`.
+
+1. Fetch the card: `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" current-cue`
+2. Compare `answer` to the card's `back` and pick a rating (`again`, `hard`, `good`, `easy`, as in the loop below).
+3. Rate it and clear the cue so the status line picks a fresh card next time:
+
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" rate <cardId> <rating>
+   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" clear-cue
+   ```
+
+4. Respond in **one line**: what they got right or missed, and when it comes back (from the updated `fsrs.due`). Example: "Got ownership but missed reference validity. Back in 3 days." Do not show the front again, do not start a session, and do not mention how many cards are due. Back to work.
 
 ## Start
 
@@ -27,7 +58,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-lock
 
    node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" due --limit 10 --hide-back [--tag "<tag>"]
 
-   The `--hide-back` flag strips the `back` field so you cannot see -- or leak -- the answer before the user does. If `$ARGUMENTS` is non-empty, pass it as `--tag`.
+   The `--hide-back` flag strips the `back` field so you cannot see -- or leak -- the answer before the user does. Pass `--tag` only in `filter` mode.
 
 2. If the list is empty: say "Nothing is due right now." and stop. Do NOT say when the next card is due, how many cards exist, or suggest coming back later.
 3. For each card, one at a time:
@@ -70,21 +101,17 @@ Find the node the weak card belongs to.
 
 **If the node has a `readTrace`:** The learner already studied this node. Mention the gap if one exists:
 
-> "You read **<node title>** earlier. The gap was around **<gap text>**. `/read <topic>: <node title>` to revisit."
+> "You worked through **<node title>** earlier. The gap was around **<gap text>**. `/teach <topic>: <node title>` to revisit."
 
-Use the first gap from `readTrace.gaps`. If there are no gaps, just suggest the re-read:
+Use the first gap from `readTrace.gaps`. If there are no gaps, just suggest a revisit:
 
-> "**<node title>** might be worth a re-read. `/read <topic>: <node title>` when ready."
+> "**<node title>** might be worth another pass. `/teach <topic>: <node title>` when ready."
 
-**If the node has NO `readTrace`:** The learner hasn't studied this node yet — they went straight to cards. Suggest reading first:
+**If the node has NO `readTrace`:** The learner went straight to cards. Suggest learning it first:
 
-> "You haven't read through **<node title>** yet. `/read <topic>: <node title>` to learn it before reviewing."
+> "You haven't been taught **<node title>** yet. `/teach <topic>: <node title>` to learn it before reviewing."
 
-**If the node has un-deepened neighbors** (nodes whose prerequisites include this one, with status `mapped`): Fall back to the existing suggestion:
-
-> "You're working through **<node>**. **<neighbor>** builds on it. `/deep-lesson` when ready."
-
-Do not push. Do not repeat if the user has already heard this in this session. One line, one time. Prefer the `/read` suggestion over the `/deep-lesson` suggestion when both apply.
+Do not push. Do not repeat if the user has already heard this in this session. One line, one time.
 
 ## Anti-guilt rules (hard constraints)
 

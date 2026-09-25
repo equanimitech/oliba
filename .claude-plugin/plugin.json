@@ -1,7 +1,7 @@
 {
   "name": "lull-n-learn",
   "version": "0.7.0",
-  "description": "Agent-native spaced repetition for Claude Code. Cards extracted from your real work sessions, reviewed on your schedule, grounded in Scott Young's Ultralearning. Local-first, anti-guilt, zero-config.",
+  "description": "Agent-native spaced repetition for Claude Code. Map a topic, learn it one piece at a time, and keep it with FSRS reviews and a one-card status-line cue. Grounded in Scott Young's Ultralearning. Local-first, anti-guilt.",
   "author": {
     "name": "EquanimiTech",
     "url": "https://equanimi.tech"

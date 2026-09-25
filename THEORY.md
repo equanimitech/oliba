@@ -15,7 +15,7 @@ This project is inspired by Young's framework. It is not affiliated with or endo
 
 Before learning a skill, research how it works, what subtopics exist, and what order to tackle them. AI has dramatically reduced the cost of this research.
 
-**Plugin feature:** `/deep-lesson <topic>` dispatches a workflow that maps the territory, sequences subtopics, and generates cards straight into the deck.
+**Plugin feature:** `/deep-lesson <topic>` dispatches a workflow that maps the territory, sequences subtopics, and generates starter cards straight into the deck. It deepens nothing up front.
 
 ### 2. Focus: Sharpen Your Knife
 
@@ -27,18 +27,16 @@ Learning requires undistracted time. The attentional ecosystem has only gotten w
 
 Practice the skill you want to get good at. Do the real thing, avoid substitutes. AI can make this harder by offering comfortable simulations instead of uncomfortable reality.
 
-**Plugin feature:** Cards are extracted from real work sessions, not abstract study material. You learn what you actually encountered, not a pre-built curriculum.
-
 **Plugin features (teaching surface):**
-- `/read <topic>: <node>` teaches a single concept through Socratic dialogue — explain, check, adjust. The agent teaches *from* the researched material rather than dumping it. Comprehension checks demand thinking, not recognition.
-- `/lesson <topic>` walks a learning path across multiple nodes in prerequisite order, with natural stopping points. The same Socratic loop, sequenced.
-- Together they close the acquisition gap: `/deep-lesson` maps → `/read` or `/lesson` acquires → `/study` retrieves.
+- `/teach <topic>` teaches one concept at a time through Socratic dialogue — explain, check, adjust — then offers the next one in prerequisite order, with natural stopping points. The agent teaches *from* the researched material rather than dumping it. Comprehension checks demand thinking, not recognition.
+- A node is researched only when `/teach` reaches it: directness at the point of use, not a curriculum built up front.
+- Together they close the acquisition gap: `/deep-lesson` maps → `/teach` acquires → `/study` retrieves.
 
 ### 4. Drill: Attack Your Weakest Point
 
 Break down a complex skill into parts, practice them in isolation. AI can generate infinite variations of practice problems.
 
-**Plugin feature:** `/drill` generates practice variations targeting weak cards with variable input/output.
+**Plugin feature:** `/study` resurfaces weak cards first. A grill mode that drills recorded weak spots (`/study grill me on <topic>`) is planned.
 
 ### 5. Retrieval: Test to Learn
 
@@ -53,7 +51,7 @@ Sparse or incomplete feedback slows learning. AI can enhance feedback in symboli
 **Plugin feature:** Agent scores your answers, reveals gaps, asks follow-up questions. Feynman escalation checks your explanations against the real answer.
 
 **Plugin features (teaching surface):**
-- During `/read`, comprehension checks catch misconceptions in real-time. The agent names the gap, re-explains from a different angle, and verifies the fix.
+- During `/teach`, comprehension checks catch misconceptions in real-time. The agent names the gap, re-explains from a different angle, and verifies the fix.
 - A light trace (`readTrace`) records comprehension signals and specific gaps. `/study` uses these to prioritize cards from weak nodes, closing the feedback loop between teaching and retrieval.
 
 ### 7. Retention: Don't Fill a Leaky Bucket
