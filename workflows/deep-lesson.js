@@ -1,6 +1,6 @@
 export const meta = {
   name: 'deep-lesson',
-  description: 'Research a topic, build a knowledge map, generate spaced-repetition cards',
+  description: 'Research a topic, build a knowledge map, generate spaced-repetition cards. Returns data only and saves nothing: launch it through the /deep-lesson skill, which persists the result with `cli.mjs lesson-save`.',
   phases: [
     { title: 'Calibrate', detail: 'Assess existing knowledge and work context' },
     { title: 'Scout', detail: 'Research the topic from multiple angles' },
@@ -228,6 +228,8 @@ ${args.workContext || 'No work context available.'}
 
 TARGET NODE (user-requested focus, if any): ${args.targetNode || 'None — choose autonomously.'}
 
+SCOPE (confirmed with the user — follow it exactly, never narrow or widen it): ${args.scope || 'The full topic as named.'}
+
 USER-STATED LEVEL (from pre-flight question, if provided): ${args.userLevel || 'Not provided — infer from cards, project state, and work context.'}
 
 Rules:
@@ -324,6 +326,8 @@ ${existingNodes}
 EXISTING EDGES:
 ${existingEdges}
 
+SCOPE (confirmed with the user — the map must cover exactly this): ${args.scope || 'The full topic as named.'}
+
 CALIBRATION:
 - Level: ${calibration.levelAssessment}
 - Known: ${calibration.knownConcepts.join(', ') || 'None'}
@@ -407,7 +411,7 @@ CARD GENERATION RULES:
   - analysis: compare/contrast, edge cases, "why not Y instead?" (1-2 cards)
 - Each card: one atomic idea. The front is a question that demands production (not recognition).
 - The back is a concise, correct answer (2-4 sentences max).
-- Tag each with: project:PROJECT_ID, node:${node.id}, ${(args.topic || '').toLowerCase().replace(/\\s+/g, '-')}
+- Tag each with 1-2 short kebab-case theme tags (e.g. "garantie-decennale"). Do NOT add project: or node: tags; the save step adds the canonical ones.
 - Skip anything covered by existing card fronts.
 - Card fronts and backs can contain markdown (links, code blocks, emphasis).
 
@@ -431,15 +435,15 @@ RESEARCH TRANSPARENCY:
     )
   )
 
-  const validDeepened = deepened.filter(Boolean).map((result, i) => ({
-    nodeId: toDeepen[i].id,
-    nodeTitle: toDeepen[i].title,
-    ...result,
-  }))
+  const validDeepened = deepened
+    .map((result, i) => result && { nodeId: toDeepen[i].id, nodeTitle: toDeepen[i].title, ...result })
+    .filter(Boolean)
 
   log(`Generated ${validDeepened.reduce((sum, d) => sum + d.cards.length, 0)} cards across ${validDeepened.length} nodes`)
 
   return {
+    saved: false,
+    persist: 'NOT SAVED YET. Pipe this result to: node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-save --topic "<topic>" (or --project <id>), then confirm with project-get.',
     calibration: {
       levelAssessment: calibration.levelAssessment,
       knownConcepts: calibration.knownConcepts,
@@ -452,6 +456,8 @@ RESEARCH TRANSPARENCY:
 }
 
 return {
+  saved: false,
+  persist: 'NOT SAVED YET. Pipe this result to: node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-save --topic "<topic>" (or --project <id>), then confirm with project-get.',
   calibration: {
     levelAssessment: calibration.levelAssessment,
     knownConcepts: calibration.knownConcepts,

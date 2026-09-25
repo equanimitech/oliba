@@ -54,6 +54,8 @@ Map the answers:
 - `userLevel`: the selected level label (e.g. "Know the basics") or their custom text
 - `preferredSources`: empty array if "No preference", otherwise parse the answer into a list of source names/URLs
 
+**Scope is the user's call, never the workflow's.** Settle what the project covers before dispatching: one project for everything named, one project per part, or just one part. If the request or any reply about scope is ambiguous (e.g. "maybe a single one?" when several modules were named — a single project? a single module?), ask **one** follow-up with `AskUserQuestion` offering the concrete readings as options, then pass the confirmed answer as `scope`. Never forward a vague reply for the workflow to interpret.
+
 **Skip the pre-flight** (dispatch immediately) when:
 - Continuing an existing project (`/deep-lesson` with no argument or `/deep-lesson <topic>: <node>` where project exists) — the project already encodes the level
 - The user provided `--sources` explicitly on the command line
@@ -72,6 +74,7 @@ args: {
   existingProject: <project JSON or null>,
   existingCards: <cards array>,
   workContext: "<git log output + ls summary>",
+  scope: "<confirmed scope, in plain words>", // from step 2; the workflow treats it as fixed
   userLevel: "<level from pre-flight>",    // optional, from step 2
   preferredSources: ["lichess.org", ...]   // optional, from step 2
 }
@@ -79,37 +82,38 @@ args: {
 
 ## 4. Persist results
 
-When the workflow returns, persist everything via CLI.
+The workflow saves nothing. Its result carries `saved: false`; nothing exists in the store until this step succeeds. Always run this step when the workflow returns, even if you launched the workflow some other way.
 
-**If new project** (`result.isNew`):
+Write the workflow result to a temp file and pipe it to `lesson-save`, which creates or updates the project, merges the map, creates every card with the canonical `project:<id>` and `node:<id>` tags, and links cards to nodes in one step:
+
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-create --topic "<topic>" --sources "<sources>"
+# new project (no existing project for this topic)
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-save --topic "<topic>" --sources "<sources>" < result.json
+# existing project
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-save --project <projectId> < result.json
 ```
 
-**For each card** in `result.deepened[].cards`:
+Decide new vs. existing from step 1 (`project-list`), not from `result.isNew`. It prints `{ projectId, created, nodeCount, cardCount, cardsAdded }`. A non-zero exit means nothing was saved: report the error and stop.
+
+**Verify before going further.** Read it back:
+
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" add --front "<front>" --back "<back>" --tags "<tags>" --source "deep-lesson" --ref "<artifactUrl>#<nodeId>"
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-get <projectId>
 ```
 
-**Link cards to nodes:**
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-add-cards <projectId> <nodeId> --cards id1,id2,...
-```
-
-**Update project** with the full graph (nodes with status/research/guide, edges):
-```bash
-echo '<project-json>' | node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-update <projectId>
-```
-
-Set each deepened node's status to `deepened` and attach its `research` and `guide` fields from the workflow result. Nodes not deepened keep status `mapped`.
+Confirm the project exists, its `nodes` length equals `nodeCount`, and the sum of `nodes[].cardIds` lengths equals `cardCount`. If anything is missing, say plainly what didn't save and stop: do not publish, do not report success. Never report numbers you didn't read back from `project-get`.
 
 ## 5. Publish the artifact
 
-Build and publish the knowledge map artifact following the **Artifact Design** section below. If the project already has an `artifactUrl`, republish to the same file path (same URL). Otherwise publish a new artifact and save the URL to the project.
+Build and publish the knowledge map artifact from the verified `project-get` output, following the **Artifact Design** section below. If the project already has an `artifactUrl`, republish to the same file path (same URL). Otherwise publish a new artifact and save the URL to the project (`project-update` merges, so send only the changed field):
+
+```bash
+echo '{"artifactUrl":"<url>"}' | node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-update <projectId>
+```
 
 ## 6. Report
 
-Say: "**<topic>** — N nodes, M cards, K deepened. [link to artifact]"
+Say: "**<topic>** — N nodes, M cards, K deepened. [link to artifact]" with N and M taken from the verified `project-get` read-back.
 
 Nothing else. No "shall I deepen more?" — the user comes back when ready.
 

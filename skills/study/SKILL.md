@@ -9,7 +9,9 @@ An FSRS-driven retrieval session. Retrieval means production: the user answers b
 
 ## Arguments
 
-`$ARGUMENTS` may contain a tag to filter by (e.g. `rust`, `project:abc`). If present, pass it as `--tag <tag>` to the `due` command. If empty, fetch all due cards.
+`$ARGUMENTS` may contain a tag or a project name to filter by (e.g. `rust`, `project:abc`, `cooking`, `code de la route`). If present, pass it whole as `--tag "<argument>"` to the `due` command. If empty, fetch all due cards.
+
+`due --tag` first matches card tags; if no card carries that tag, it matches project topics (case- and accent-insensitive substring) and returns that project's cards. If several projects match, it returns `{ "ambiguous": true, "projects": [{ "id", "topic" }] }` instead of cards: ask which one with `AskUserQuestion` (one option per topic), then use `--tag project:<id>` for the rest of the session.
 
 ## Start
 
@@ -23,7 +25,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-lock
 
 1. Fetch due cards **without answers**:
 
-   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" due --limit 10 --hide-back [--tag <tag>]
+   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" due --limit 10 --hide-back [--tag "<tag>"]
 
    The `--hide-back` flag strips the `back` field so you cannot see -- or leak -- the answer before the user does. If `$ARGUMENTS` is non-empty, pass it as `--tag`.
 
