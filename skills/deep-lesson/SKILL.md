@@ -5,7 +5,7 @@ description: Metalearning engine that researches a topic, builds a living knowle
 
 # /deep-lesson — Metalearning Engine
 
-Autonomous workflow modeled on deep research: the user names a topic, the workflow calibrates their level, researches, maps, deepens, and generates cards. Fire-and-report — no mid-flow interaction.
+Autonomous workflow modeled on deep research: the user names a topic, one pre-flight question calibrates level and sources, then the workflow researches, maps, deepens, and generates cards autonomously.
 
 ## 1. Gather context
 
@@ -28,7 +28,37 @@ If a project exists for this topic, also run:
 node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-get <projectId>
 ```
 
-## 2. Dispatch the workflow
+## 2. Pre-flight
+
+Before dispatching, ask with `AskUserQuestion` — two questions in one call:
+
+**Question 1 — Level** (single select):
+- Header: "Level"
+- Question: "How well do you know **<topic>**?"
+- Options:
+  - "Starting fresh" — never studied it, maybe heard the name
+  - "Know the basics" — familiar with the main ideas but gaps in details
+  - "Intermediate" — can discuss specific concepts, want to deepen
+  - "Advanced" — looking to fill specific gaps or go deeper on subtopics
+
+**Question 2 — Sources** (single select):
+- Header: "Sources"
+- Question: "Any specific sources to anchor on? (sites, books, URLs)"
+- Options:
+  - "No preference (Recommended)" — use best available
+  - "Official docs / wiki" — prioritize canonical references
+
+The user can always type a custom answer via "Other" (e.g. "lichess.org", "Marcella Hazan's cookbook").
+
+Map the answers:
+- `userLevel`: the selected level label (e.g. "Know the basics") or their custom text
+- `preferredSources`: empty array if "No preference", otherwise parse the answer into a list of source names/URLs
+
+**Skip the pre-flight** (dispatch immediately) when:
+- Continuing an existing project (`/deep-lesson` with no argument or `/deep-lesson <topic>: <node>` where project exists) — the project already encodes the level
+- The user provided `--sources` explicitly on the command line
+
+## 3. Dispatch the workflow
 
 Say: "Mapping **<topic>**." (nothing else — no questions, no waiting)
 
@@ -37,15 +67,17 @@ Use the Workflow tool:
 scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/deep-lesson.js"
 args: {
   topic: "<topic>",
-  sources: ["<path1>", "<path2>"],        // optional
+  sources: ["<path1>", "<path2>"],        // optional, from --sources flag
   targetNode: "<node title>",              // optional
   existingProject: <project JSON or null>,
   existingCards: <cards array>,
-  workContext: "<git log output + ls summary>"
+  workContext: "<git log output + ls summary>",
+  userLevel: "<level from pre-flight>",    // optional, from step 2
+  preferredSources: ["lichess.org", ...]   // optional, from step 2
 }
 ```
 
-## 3. Persist results
+## 4. Persist results
 
 When the workflow returns, persist everything via CLI.
 
@@ -71,11 +103,11 @@ echo '<project-json>' | node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-update 
 
 Set each deepened node's status to `deepened` and attach its `research` and `guide` fields from the workflow result. Nodes not deepened keep status `mapped`.
 
-## 4. Publish the artifact
+## 5. Publish the artifact
 
 Build and publish the knowledge map artifact following the **Artifact Design** section below. If the project already has an `artifactUrl`, republish to the same file path (same URL). Otherwise publish a new artifact and save the URL to the project.
 
-## 5. Report
+## 6. Report
 
 Say: "**<topic>** — N nodes, M cards, K deepened. [link to artifact]"
 
