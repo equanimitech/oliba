@@ -9,7 +9,7 @@
 
 /**
  * Does a typed or chosen answer match? Numbers compare as numbers (spaces as
- * thousands separators and a decimal comma are fine: "1 500", "18,0");
+ * thousands separators, a decimal comma and a trailing unit are fine: "1 500", "18,0", "18 mois");
  * anything else compares case- and accent-insensitively.
  * @param {string} given @param {string} answer @param {number} tolerance
  */
@@ -18,8 +18,9 @@ const olibaMatches = (given, answer, tolerance) => {
   const num = (s) => Number(s.replace(/[\s  ]/g, '').replace(',', '.'));
   /** @param {string} s */
   const norm = (s) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').trim().toLowerCase();
-  const [a, b] = [num(given), num(answer)];
-  if (given.trim() && answer.trim() && Number.isFinite(a) && Number.isFinite(b)) return Math.abs(a - b) <= tolerance;
+  // A numeric answer compares on the reply's leading number; a unit after it is ignored ("18 mois").
+  const lead = given.match(/^\s*-?\d[\d\s  ]*(?:[.,]\d+)?/)?.[0] ?? '';
+  if (answer.trim() && Number.isFinite(num(answer))) return lead !== '' && Math.abs(num(lead) - num(answer)) <= tolerance;
   return norm(given) === norm(answer);
 };
 
