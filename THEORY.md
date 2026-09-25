@@ -15,7 +15,7 @@ This project is inspired by Young's framework. It is not affiliated with or endo
 
 Before learning a skill, research how it works, what subtopics exist, and what order to tackle them. AI has dramatically reduced the cost of this research.
 
-**Plugin feature:** `/deep-lesson <topic>` dispatches a workflow that maps the territory, sequences subtopics, and generates starter cards straight into the deck. It deepens nothing up front.
+**Plugin feature:** `/syllabus <topic>` dispatches a workflow that maps the territory, sequences subtopics, and generates starter cards straight into the deck. It deepens nothing up front.
 
 ### 2. Focus: Sharpen Your Knife
 
@@ -30,7 +30,7 @@ Practice the skill you want to get good at. Do the real thing, avoid substitutes
 **Plugin features (teaching surface):**
 - `/teach <topic>` teaches one concept at a time through Socratic dialogue — explain, check, adjust — then offers the next one in prerequisite order, with natural stopping points. The agent teaches *from* the researched material rather than dumping it. Comprehension checks demand thinking, not recognition.
 - A node is researched only when `/teach` reaches it: directness at the point of use, not a curriculum built up front.
-- Together they close the acquisition gap: `/deep-lesson` maps → `/teach` acquires → `/study` retrieves.
+- Together they close the acquisition gap: `/syllabus` maps → `/teach` acquires → `/study` retrieves.
 
 ### 4. Drill: Attack Your Weakest Point
 

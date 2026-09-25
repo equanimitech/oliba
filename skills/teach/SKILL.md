@@ -25,15 +25,36 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-list
 node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-get <projectId>
 ```
 
-Match the topic against `project-list` (case-insensitive substring). No match: "No map for that topic yet. `/deep-lesson <topic>` first." and stop.
+Match the topic against `project-list` (case-insensitive substring). No match: "No map for that topic yet. `/syllabus <topic>` draws one." and stop.
 
 ## Pick the node
 
 **Named node:** match its `title`.
 
-**Next on the path:** topologically sort `nodes` by `edges` (`from` comes before `to`; ties alphabetical by title). Drop nodes with status `mastered` and, unless `--all`, nodes with a `readTrace`. Keep only nodes that have a `guide`. The first remaining node is next. If none remain: "Everything researched so far has been taught. `/deep-lesson <topic>` to deepen more." and stop.
+**Next on the path:** topologically sort `nodes` by `edges` (`from` comes before `to`; ties alphabetical by title). Drop nodes with status `mastered` and, unless `--all`, nodes with a `readTrace`. The first remaining node is next. If none remain: "Everything on the map has been taught. `/syllabus <topic>` extends the map." and stop.
 
-If the chosen node has no `guide` (status `mapped`): "**<node title>** hasn't been researched yet. `/deep-lesson <topic>: <node title>` to deepen it first." and stop.
+## Deepen it if it's only mapped
+
+If the chosen node has no `guide` (status `mapped`), research that one node now, and only that one. Say "Researching **<node title>**." and run the Workflow tool:
+
+```
+scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/syllabus.js"
+args: {
+  topic: "<project topic>",
+  targetNode: "<node id>",
+  existingProject: <full project JSON from project-get>,
+  existingCards: <cards on this project, from `list`>
+}
+```
+
+The workflow saves nothing. Persist its result, then read the project back:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-save --project <projectId> < result.json
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-get <projectId>
+```
+
+If `lesson-save` fails or the node still has no `guide`, say plainly what didn't save and stop. Never teach from research that wasn't saved.
 
 ## Lock the status line
 

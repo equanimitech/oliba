@@ -14,7 +14,7 @@ Local-first. Anti-guilt.
 
 ## How it works
 
-1. **Map.** Run `/deep-lesson <topic>`: the agent maps the territory into ordered modules with prerequisites and starter cards, and publishes the map as a study guide.
+1. **Map.** Run `/syllabus <topic>`: the agent maps the territory into ordered modules with prerequisites and starter cards, and publishes the map as a study guide.
 2. **Learn.** Run `/teach <topic>`: the agent teaches the next piece on the map through a Socratic walk-through, researching it only when you reach it.
 3. **Study.** Run `/study` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules.
 4. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. Answer it in place with `/study <your answer>`. One cue, never a count.
@@ -23,7 +23,7 @@ Local-first. Anti-guilt.
 
 | Command | What it does |
 |---|---|
-| `/deep-lesson <topic>` | Map a topic: modules, prerequisites, starter cards |
+| `/syllabus <topic>` | Map a topic: modules, prerequisites, starter cards |
 | `/teach <topic>[: <node>]` | Learn one piece at a time, in prerequisite order |
 | `/study [tag \| project \| answer]` | FSRS retrieval session, or score the status-line cue |
 | `/config` | Settings and status line setup |

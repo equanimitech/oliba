@@ -1,11 +1,13 @@
 ---
-name: deep-lesson
-description: Metalearning engine that researches a topic, builds a living knowledge map artifact with starter cards at every node, and deepens progressively. Use when the user runs /deep-lesson, says "let's learn about X", "map this topic", "I want to study X", or wants to deepen a concept node.
+name: syllabus
+description: Map a topic into ordered modules with prerequisites and starter cards, published as a study-guide artifact. Deepens nothing up front; /teach researches each node when the learner reaches it. Use when the user runs /syllabus, says "let's learn about X", "map this topic", "I want to study X", or "what should I learn first about X".
 ---
 
-# /deep-lesson — Metalearning Engine
+# /syllabus — draw the map first
 
-Autonomous workflow modeled on deep research: the user names a topic, one pre-flight question calibrates level and sources, then the workflow researches, maps, deepens, and generates cards autonomously.
+The user names a topic, one pre-flight question calibrates level and sources, then the workflow researches and maps it: ordered modules, prerequisites, one or two starter cards per node. It stops there. Nodes are deepened one at a time by `/teach`, when the learner gets to them.
+
+If `node` is not found, tell the user in one line to install the Node.js LTS from nodejs.org, then restart Claude Code, and stop.
 
 ## 1. Gather context
 
@@ -18,10 +20,10 @@ git log --oneline -20 2>/dev/null
 ```
 
 Parse the user's input:
-- `/deep-lesson <topic>` → topic is the argument
-- `/deep-lesson <topic> --sources file1,file2` → topic + source file paths
-- `/deep-lesson <topic>: <node>` → topic + target node to focus on
-- `/deep-lesson` with no argument → continue the most recent project (use its topic)
+- `/syllabus <topic>` → topic is the argument
+- `/syllabus <topic> --sources file1,file2` → topic + source file paths
+- `/syllabus <topic>: <node>` → the user wants to learn one node: say "`/teach <topic>: <node>` teaches it." and stop
+- `/syllabus` with no argument → extend the map of the most recent project (use its topic)
 
 If a project exists for this topic, also run:
 ```bash
@@ -57,7 +59,7 @@ Map the answers:
 **Scope is the user's call, never the workflow's.** Settle what the project covers before dispatching: one project for everything named, one project per part, or just one part. If the request or any reply about scope is ambiguous (e.g. "maybe a single one?" when several modules were named — a single project? a single module?), ask **one** follow-up with `AskUserQuestion` offering the concrete readings as options, then pass the confirmed answer as `scope`. Never forward a vague reply for the workflow to interpret.
 
 **Skip the pre-flight** (dispatch immediately) when:
-- Continuing an existing project (`/deep-lesson` with no argument or `/deep-lesson <topic>: <node>` where project exists) — the project already encodes the level
+- Extending an existing project (`/syllabus` with no argument, or a topic whose project exists) — the project already encodes the level
 - The user provided `--sources` explicitly on the command line
 
 ## 3. Dispatch the workflow
@@ -66,11 +68,10 @@ Say: "Mapping **<topic>**." (nothing else — no questions, no waiting)
 
 Use the Workflow tool:
 ```
-scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/deep-lesson.js"
+scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/syllabus.js"
 args: {
   topic: "<topic>",
   sources: ["<path1>", "<path2>"],        // optional, from --sources flag
-  targetNode: "<node title>",              // optional
   existingProject: <project JSON or null>,
   existingCards: <cards array>,
   workContext: "<git log output + ls summary>",
@@ -84,7 +85,7 @@ args: {
 
 The workflow saves nothing. Its result carries `saved: false`; nothing exists in the store until this step succeeds. Always run this step when the workflow returns, even if you launched the workflow some other way.
 
-Write the workflow result to a temp file and pipe it to `lesson-save`, which creates or updates the project, merges the map, creates every card with the canonical `project:<id>` and `node:<id>` tags, and links cards to nodes in one step:
+Write the workflow result to a temp file and pipe it to `lesson-save`, which creates or updates the project, merges the map, creates every starter card with the canonical `project:<id>` and `node:<id>` tags, and links cards to nodes in one step:
 
 ```bash
 # new project (no existing project for this topic)
@@ -113,9 +114,9 @@ echo '{"artifactUrl":"<url>"}' | node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" projec
 
 ## 6. Report
 
-Say: "**<topic>** — N nodes, M cards, K deepened. [link to artifact]" with N and M taken from the verified `project-get` read-back.
+Say: "**<topic>** — N nodes, M starter cards. [link to artifact] `/teach <topic>` starts at the beginning." with N and M taken from the verified `project-get` read-back.
 
-Nothing else. No "shall I deepen more?" — the user comes back when ready.
+Nothing else. The user comes back when ready.
 
 ---
 
@@ -166,7 +167,7 @@ Use the `artifact-design` skill before building it.
 **Structure:**
 
 ```html
-<title>Deep Lesson: {topic}</title>
+<title>Syllabus: {topic}</title>
 
 <pre class="mermaid">
   graph TD

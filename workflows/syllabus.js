@@ -1,11 +1,11 @@
 export const meta = {
-  name: 'deep-lesson',
-  description: 'Research a topic, build a knowledge map, generate spaced-repetition cards. Returns data only and saves nothing: launch it through the /deep-lesson skill, which persists the result with `cli.mjs lesson-save`.',
+  name: 'syllabus',
+  description: 'Map a topic into ordered modules with prerequisites and starter cards. With args.targetNode, deepen that one node instead (used by /teach). Returns data only and saves nothing: /syllabus and /teach persist the result with `cli.mjs lesson-save`.',
   phases: [
     { title: 'Calibrate', detail: 'Assess existing knowledge and work context' },
     { title: 'Scout', detail: 'Research the topic from multiple angles' },
     { title: 'Map', detail: 'Synthesize into a knowledge graph' },
-    { title: 'Deepen', detail: 'Research priority nodes and generate cards' },
+    { title: 'Deepen', detail: 'Only with targetNode: research one node and generate cards' },
   ],
 }
 
@@ -17,7 +17,7 @@ if (typeof args === 'string') {
   args = { topic: args }
 }
 if (!args.topic) {
-  throw new Error('deep-lesson requires a topic — pass it as args or args.topic')
+  throw new Error('syllabus requires a topic — pass it as args or args.topic')
 }
 
 // When existingProject is just {id: "..."}, load the full project from disk via an agent.
@@ -27,7 +27,7 @@ if (args.existingProject && args.existingProject.id && !args.existingProject.nod
 
 Run this command:
 \`\`\`bash
-cat ~/.lull-n-learn/projects.json | python3 -c "import json,sys; d=json.load(sys.stdin); p=d.get('${args.existingProject.id}'); print(json.dumps(p) if p else 'null')"
+node -e 'const d=process.env.LULL_N_LEARN_DIR||require("os").homedir()+"/.lull-n-learn";const p=require(d+"/projects.json")[process.argv[1]];console.log(JSON.stringify(p??null))' '${args.existingProject.id}'
 \`\`\`
 
 Return the FULL project JSON as-is. If not found, return null.`,
@@ -59,25 +59,12 @@ const CALIBRATION_SCHEMA = {
       type: 'string',
       description: 'One-sentence assessment of the learner\'s current level on this topic',
     },
-    nodesToDeepen: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', description: 'Existing node ID from the project' },
-          title: { type: 'string' },
-          reason: { type: 'string' },
-        },
-        required: ['id', 'title', 'reason'],
-      },
-      description: 'For continuations: which existing nodes to deepen this run (empty for new topics)',
-    },
     isLibraryOrFramework: {
       type: 'boolean',
       description: 'Whether the topic is a specific library or framework (affects Context7 usage)',
     },
   },
-  required: ['knownConcepts', 'gaps', 'needsScout', 'levelAssessment', 'nodesToDeepen', 'isLibraryOrFramework'],
+  required: ['knownConcepts', 'gaps', 'needsScout', 'levelAssessment', 'isLibraryOrFramework'],
 }
 
 const SCOUT_SCHEMA = {
@@ -122,8 +109,20 @@ const MAP_SCHEMA = {
           id: { type: 'string' },
           title: { type: 'string' },
           description: { type: 'string' },
+          starterCards: {
+            type: 'array',
+            description: '1-2 starter cards: what the node is and how it relates to a neighbour',
+            items: {
+              type: 'object',
+              properties: {
+                front: { type: 'string' },
+                back: { type: 'string' },
+              },
+              required: ['front', 'back'],
+            },
+          },
         },
-        required: ['id', 'title', 'description'],
+        required: ['id', 'title', 'description', 'starterCards'],
       },
     },
     edges: {
@@ -137,14 +136,9 @@ const MAP_SCHEMA = {
         required: ['from', 'to'],
       },
     },
-    nodesToDeepen: {
-      type: 'array',
-      items: { type: 'string' },
-      description: 'Node IDs to deepen this run, ordered by priority (prerequisites met, high learning value)',
-    },
     suggestedStart: { type: 'string', description: 'Node ID of the best starting point' },
   },
-  required: ['nodes', 'edges', 'nodesToDeepen', 'suggestedStart'],
+  required: ['nodes', 'edges', 'suggestedStart'],
 }
 
 const DEEPEN_SCHEMA = {
@@ -220,7 +214,7 @@ Analyze these inputs and produce a structured assessment:
 EXISTING CARDS (what the learner has already studied):
 ${JSON.stringify(args.existingCards || [], null, 2)}
 
-EXISTING PROJECT STATE (prior deep-lesson work on this topic):
+EXISTING PROJECT STATE (prior syllabus work on this topic):
 ${JSON.stringify(args.existingProject || null, null, 2)}
 
 WORK CONTEXT (what the learner has been building recently):
@@ -235,9 +229,6 @@ USER-STATED LEVEL (from pre-flight question, if provided): ${args.userLevel || '
 Rules:
 - When userLevel is provided, use it as the primary signal for levelAssessment. It overrides inferences from cards/context.
 - Set needsScout=true if no project exists or the map needs expanding.
-- For continuations (project exists), find nodes with status "mapped" whose prerequisites are all "deepened", "learning", or "mastered". These are ready to deepen.
-- If a targetNode is specified, put it first in nodesToDeepen regardless of prerequisites.
-- Cap nodesToDeepen at 3 nodes for new topics, 5 for continuations.
 - Use work context to infer what the learner has been exposed to even without cards.
 - isLibraryOrFramework=true if the topic names a specific technology (React, FSRS, Elixir, etc).`,
   { label: 'calibrate', schema: CALIBRATION_SCHEMA }
@@ -248,9 +239,12 @@ log(`Known: ${calibration.knownConcepts.length} concepts | Gaps: ${calibration.g
 
 // --- Phase 2: Scout (conditional) ---
 
+// Deepening a node of an existing map (/teach): the map stays as it is.
+const deepenOnly = Boolean(args.targetNode && args.existingProject && args.existingProject.nodes && args.existingProject.nodes.length)
+
 let scoutResults = []
 
-if (calibration.needsScout) {
+if (calibration.needsScout && !deepenOnly) {
   phase('Scout')
   log(`Scouting "${args.topic}" from multiple angles`)
 
@@ -309,12 +303,13 @@ Return the concepts with citations back to the source file.`,
 
 // --- Phase 3: Map ---
 
-phase('Map')
-
 const existingNodes = args.existingProject ? JSON.stringify(args.existingProject.nodes) : 'None'
 const existingEdges = args.existingProject ? JSON.stringify(args.existingProject.edges) : 'None'
 
-const mapResult = await agent(
+if (!deepenOnly) phase('Map')
+const mapResult = deepenOnly
+  ? { nodes: args.existingProject.nodes, edges: args.existingProject.edges || [] }
+  : await agent(
   `Synthesize a knowledge graph for "${args.topic}".
 
 SCOUT RESULTS (research from multiple angles):
@@ -338,26 +333,27 @@ Rules:
 - Edges are prerequisite relationships: from → to means "from" should be studied before "to".
 - Generate short UUIDs for node IDs (8 hex chars, like "a1b2c3d4").
 - If updating an existing graph, preserve existing node IDs and add new nodes. Don't remove nodes that have cards attached.
-- nodesToDeepen: pick the nodes with highest learning value that have prerequisites met. Cap at 3 for a new graph, 5 for an update.
+- starterCards: 1-2 per NEW node (none for existing nodes): "What is X?" and "How does X relate to Y?". The front demands production, the back is 1-2 sentences. No project: or node: tags.
 - suggestedStart: the best first node (fewest prerequisites, foundational).
 - Node descriptions: one sentence, what the learner will understand after deepening this node.`,
   { label: 'synthesize', schema: MAP_SCHEMA }
 )
 
-log(`Map: ${mapResult.nodes.length} nodes, ${mapResult.edges.length} edges`)
+if (!deepenOnly) log(`Map: ${mapResult.nodes.length} nodes, ${mapResult.edges.length} edges`)
 
 // --- Phase 4: Deepen (pipeline) ---
 
-const toDeepen = (calibration.nodesToDeepen.length > 0 && !calibration.needsScout)
-  ? calibration.nodesToDeepen
-  : mapResult.nodesToDeepen.map(id => {
-      const node = mapResult.nodes.find(n => n.id === id)
-      return node ? { id: node.id, title: node.title, reason: 'map-selected' } : null
-    }).filter(Boolean)
+// Map only, unless a target node is named: then deepen exactly that one (k=1).
+const target = args.targetNode
+  ? mapResult.nodes.find(n => n.id === args.targetNode) ||
+    mapResult.nodes.find(n => String(n.title || '').toLowerCase().includes(String(args.targetNode).toLowerCase()))
+  : null
+if (args.targetNode && !target) log(`No node matches "${args.targetNode}"; nothing deepened`)
+const toDeepen = target ? [{ id: target.id, title: target.title }] : []
 
 if (toDeepen.length > 0) {
   phase('Deepen')
-  log(`Deepening ${toDeepen.length} nodes`)
+  log(`Deepening ${toDeepen[0].title}`)
 
   const deepened = await pipeline(
     toDeepen,
