@@ -168,6 +168,14 @@ footer.save button {
   cursor: pointer;
 }
 footer.save output { display: block; margin-top: .75rem; color: var(--muted); font-size: .9rem; }
+footer.save button.copy-instead {
+  font: inherit;
+  color: var(--accent);
+  background: none;
+  padding: 0 .25rem;
+  text-decoration: underline;
+  text-underline-offset: .15em;
+}
 footer.save code.prompt { user-select: all; word-break: break-all; background: var(--wash); padding: .15rem .35rem; }
 
 /* Lesson index and glossary lists. */

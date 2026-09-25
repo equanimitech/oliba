@@ -7,19 +7,23 @@
 //            <input> <button type="button">Check</button>
 // Every quiz also carries a <details> answer for readers without JS.
 
-(() => {
-  /** @param {string} s */
-  const norm = (s) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').trim().toLowerCase();
+/**
+ * Does a typed or chosen answer match? Numbers compare as numbers (spaces as
+ * thousands separators and a decimal comma are fine: "1 500", "18,0");
+ * anything else compares case- and accent-insensitively.
+ * @param {string} given @param {string} answer @param {number} tolerance
+ */
+const olibaMatches = (given, answer, tolerance) => {
   /** @param {string} s */
   const num = (s) => Number(s.replace(/[\s  ]/g, '').replace(',', '.'));
+  /** @param {string} s */
+  const norm = (s) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').trim().toLowerCase();
+  const [a, b] = [num(given), num(answer)];
+  if (given.trim() && answer.trim() && Number.isFinite(a) && Number.isFinite(b)) return Math.abs(a - b) <= tolerance;
+  return norm(given) === norm(answer);
+};
 
-  /** @param {string} given @param {string} answer @param {number} tolerance */
-  const matches = (given, answer, tolerance) => {
-    const [a, b] = [num(given), num(answer)];
-    if (given.trim() && Number.isFinite(a) && Number.isFinite(b)) return Math.abs(a - b) <= tolerance;
-    return norm(given) === norm(answer);
-  };
-
+(() => {
   /** First attempt per quiz id, in memory only: later tries never change it. @type {Map<string, boolean>} */
   const firstAttempts = new Map();
 
@@ -33,7 +37,7 @@
     /** @param {HTMLButtonElement} button */
     const judge = (button) => {
       if (input && !input.value.trim()) return;
-      const right = matches(input ? input.value : button.value, answer, tolerance);
+      const right = olibaMatches(input ? input.value : button.value, answer, tolerance);
       if (quiz.id && !firstAttempts.has(quiz.id)) firstAttempts.set(quiz.id, right);
       const reason = input
         ? (right ? quiz.dataset.why : quiz.dataset.hint) ?? ''
@@ -56,8 +60,9 @@
     });
   }
 
-  // Save my results: download the first attempts as JSON and copy a /study
-  // prompt that carries them inline, in case the download is blocked.
+  // Save my results: download the first attempts as JSON. oliba's hook picks
+  // the file up from Downloads on the next prompt. Copying a /study prompt is
+  // only the fallback, for when the download can't happen.
   // A blob: URL and the clipboard only; nothing leaves the machine, nothing is stored.
   const main = document.querySelector('main');
   const save = document.querySelector('button.save-results');
@@ -85,24 +90,39 @@
     }
   };
 
-  save.addEventListener('click', async () => {
-    const { project = '', lesson = '', results = 'oliba-results.json' } = main.dataset;
-    const items = [...firstAttempts].map(([q, correct]) => ({ q, correct }));
-    const json = JSON.stringify({ lesson, project, answeredAt: new Date().toISOString(), items }, null, 2);
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-    link.download = results;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-
-    const prompt = `/oliba:study results ${project} ${lesson} ${items.map((i) => `${i.q}:${i.correct ? '✓' : '✗'}`).join(' ')}`.trim();
+  /** Copy the prompt; if even that fails, leave it selected in a <code> box. @param {string} prompt */
+  const offerPrompt = async (prompt) => {
     const copied = await copy(prompt);
     const code = document.createElement('code');
     code.textContent = prompt;
     code.className = 'prompt';
     saveOutput.replaceChildren(copied ? '✓ ⧉ ' : '⧉ ', code);
     if (!copied) getSelection()?.selectAllChildren(code);
+  };
+
+  save.addEventListener('click', () => {
+    const { project = '', lesson = '', results = 'oliba-results.json' } = main.dataset;
+    const items = [...firstAttempts].map(([q, correct]) => ({ q, correct }));
+    const json = JSON.stringify({ lesson, project, answeredAt: new Date().toISOString(), items }, null, 2);
+    const prompt = `/oliba:study results ${project} ${lesson} ${items.map((i) => `${i.q}:${i.correct ? '✓' : '✗'}`).join(' ')}`.trim();
+    try {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      link.download = results;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    } catch {
+      offerPrompt(prompt);
+      return;
+    }
+    // Neutral confirmation, plus a small way out if the browser swallowed the download.
+    const instead = document.createElement('button');
+    instead.type = 'button';
+    instead.className = 'copy-instead';
+    instead.textContent = '⧉ /study';
+    instead.addEventListener('click', () => offerPrompt(prompt));
+    saveOutput.replaceChildren(`✓ ⤓ ${results} `, instead);
   });
 })();

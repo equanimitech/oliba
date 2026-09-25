@@ -47,12 +47,12 @@ One exchange, no ceremony. The status-line card is `cardId`; the user's answer i
 
 ## Lesson results
 
-A lesson's save button hands its quiz answers to FSRS: a miss rates the quiz's card `again`, a hit rates it `good`. Only the learner's first attempt at each quiz counts.
+A lesson's save button downloads its quiz answers, and a prompt hook normally imports them from `~/Downloads` on its own: a miss rates the quiz's card `again`, a hit rates it `good`. Only the learner's first attempt at each quiz counts. This mode is the manual path: a pasted prompt (when the browser couldn't download) or a file the hook left behind.
 
 - `args` holds results (`<projectId> <lesson.html> q1:✗ q2:✓ …`, the copied prompt): run
   `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" results-import <args, each shell-quoted>`
 - `args` is empty: use the newest download, `ls -t ~/Downloads/oliba-results-*.json | head -1`, and run
-  `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" results-import --file "<that path>"`. On success the CLI deletes the file. If there is no file, say in one line to click the save button at the end of the lesson and paste the prompt it copies.
+  `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" results-import --file "<that path>"`. On success the CLI deletes the file. If it fails, say in one line what it reports (the hook leaves unreadable files in place). If there is no file: "Nothing to import; results saved from a lesson are picked up automatically."
 
 It prints `{ rated, skipped }`. Cards already reviewed since the answers are skipped, so importing twice is harmless. Reply in **one line**, no counts, e.g. "Saved. The ones you missed come back sooner." If nothing was rated: "Already saved." Don't start a session.
 

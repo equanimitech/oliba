@@ -205,7 +205,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-write <projectId> --title "<the 
 
 It writes `~/.oliba/lessons/<slug>/NNNN-<name>.html`, adds it to `project.lessons`, rebuilds the local `index.html` beside it, and opens the lesson in the browser. It prints `{ file, index, lesson: { n } }`. If it refuses the body, fix what it names and run it again.
 
-A lesson with quizzes gets one save button at the end, labelled with `--save-label`. It downloads the learner's first attempt at each quiz as `oliba-results-<slug>-NNNN.json` and copies a `/oliba:study results …` prompt that carries the same results, for when the download is blocked. `/study results` rates the lesson's cards from them. Don't write this button yourself.
+A lesson with quizzes gets one save button at the end, labelled with `--save-label`. It downloads the learner's first attempt at each quiz as `oliba-results-<slug>-NNNN.json`; oliba's prompt hook imports it from `~/Downloads` on their next message, rates the lesson's cards, and deletes the file. If the browser can't download, the confirmation offers a `/study results …` prompt to paste instead. Don't write this button yourself.
 
 ### Quiz items → cards
 
@@ -233,7 +233,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" read-trace <projectId> <nodeId> --compr
 
 ### Close
 
-One line, in `language`: the lesson's path, that its questions are now cards, and that the button at the end sends their answers to `/study`. "Lesson ready: `<file>`. Save your results at the end and paste the prompt into `/study`; `/teach <topic> ?` for questions." No summary, no count of lessons, cards or anything else.
+One line, in `language`: the lesson's path, that its questions are now cards, and to click save at the end when they're done. "Lesson ready: `<file>`. Click save at the end when you're done; `/teach <topic> ?` for questions." No summary, no count of lessons, cards or anything else.
 
 ---
 
