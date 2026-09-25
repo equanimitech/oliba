@@ -58,6 +58,8 @@ Map the answers:
 
 **Scope is the user's call, never the workflow's.** Settle what the project covers before dispatching: one project for everything named, one project per part, or just one part. If the request or any reply about scope is ambiguous (e.g. "maybe a single one?" when several modules were named — a single project? a single module?), ask **one** follow-up with `AskUserQuestion` offering the concrete readings as options, then pass the confirmed answer as `scope`. Never forward a vague reply for the workflow to interpret.
 
+**Mission and languages (once per project).** If there is no project yet, or its `mission` is null, first ask three questions in one `AskUserQuestion`, the same ones `/teach` asks: "Why" ("What do you want to be able to do with **<topic>**?", one line), "Language" ("Which language should I teach you in?", the conversation's language recommended) and "Terms" ("Which language should the field's own terms stay in?", the sources' language recommended). Store languages as BCP 47 codes (`fr`, `pt-BR`); "the sources' language" is left unset until `/teach` picks a primary source. Ask them even when the rest of the pre-flight is skipped, and never again once `mission` is set. Save them after step 4 with `project-set <projectId> --mission "<why>" --language <code> [--term-language <code>]`, or right away for an existing project.
+
 **Skip the pre-flight** (dispatch immediately) when:
 - Extending an existing project (`/syllabus` with no argument, or a topic whose project exists) — the project already encodes the level
 - The user provided `--sources` explicitly on the command line

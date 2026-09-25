@@ -89,6 +89,24 @@ table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .9
 th, td { text-align: left; vertical-align: top; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); }
 th { font: 600 .8rem/1.3 system-ui, sans-serif; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 
+/* Think first: a question from the sitting, its answer behind a reveal. */
+.think {
+  margin: 1.25rem 0;
+  padding: .75rem 1rem;
+  border-left: 3px solid var(--accent);
+}
+.think > p:first-child { margin-top: 0; font-weight: 600; }
+.think details { color: var(--muted); }
+.think details[open] { color: var(--ink); }
+.think summary { cursor: pointer; font: .85rem/1.4 system-ui, sans-serif; color: var(--accent); }
+
+/* Contrast: the tempting wrong model beside the right one. */
+aside.contrast { display: grid; gap: .5rem; }
+aside.contrast p { margin: 0; padding-left: 1.4rem; position: relative; }
+aside.contrast .wrong::before { content: "✗"; position: absolute; left: 0; color: var(--wrong); }
+aside.contrast .right::before { content: "✓"; position: absolute; left: 0; color: var(--right); }
+aside.contrast .wrong { color: var(--muted); }
+
 /* Quizzes: <fieldset class="quiz" data-answer="…">, one <details> fallback each. */
 fieldset.quiz {
   margin: 1.75rem 0;
