@@ -1,11 +1,21 @@
 ---
 name: config
-description: Configure lull-n-learn settings — status line theme, grace period, cue toggle. Use when the user says "show me cooking cards", "turn off the cue", "change the delay", "only code cards", "lull config", or asks to adjust how the status line cue behaves.
+description: Configure lull-n-learn settings — status line setup, theme, grace period, cue toggle. Use when the user runs /config statusline, says "set up the status line", or the user says "show me cooking cards", "turn off the cue", "change the delay", "only code cards", "lull config", or asks to adjust how the status line cue behaves.
 ---
 
 # Configure lull-n-learn
 
 Read or update `~/.lull-n-learn/config.json` via CLI.
+
+## Set up the status line
+
+When the user runs `/config statusline` or says yes to the status line offer:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" statusline-install
+```
+
+It points `statusLine` in `~/.claude/settings.json` at `~/.lull-n-learn/statusline.mjs`, a stable shim that survives plugin updates. It backs up `settings.json` first and touches no other key. If the user already had a status line, it is kept in `statusLinePrevious`: it runs first and the cue is appended after it. If the command fails because `settings.json` is not valid JSON, tell the user in one line and stop; never edit the file by hand. Confirm in one line: "Status line set. If it does not show, restart Claude Code."
 
 ## Show current config
 

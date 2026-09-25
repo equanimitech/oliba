@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/session-start.mjs\" && echo \"lull-n-learn active. Skills: /deep-lesson (map and deepen a topic), /study (retrieval session), /answer (score the status-line cue), /sift (triage harvested candidates), /card (create a card), /harvest (mine this session for cards). Spaced repetition grounded in Scott Young's Ultralearning. Data: ~/.lull-n-learn/\"",
+            "command": "if command -v node >/dev/null 2>&1; then node \"${CLAUDE_PLUGIN_ROOT}/lib/session-start.mjs\"; else echo \"lull-n-learn needs Node.js: tell the user in one line to install the LTS from nodejs.org, then restart Claude Code.\"; fi",
             "timeout": 5
           }
         ]

@@ -8,26 +8,9 @@ Local-first. Anti-guilt. Zero-config.
 
 ## Install
 
-Add the equanimitech marketplace to `~/.claude/settings.json` (one-time):
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "equanimitech": {
-      "source": {
-        "source": "github",
-        "repo": "equanimitech/claude-plugins"
-      }
-    }
-  }
-}
-```
-
-Then in any Claude Code session:
-
-```
-/plugin install lull-n-learn
-```
+1. In a terminal: `claude plugin marketplace add equanimitech/claude-plugins && claude plugin install lull-n-learn@equanimitech`
+2. Or inside Claude Code: `/plugin marketplace add equanimitech/claude-plugins`, then `/plugin install lull-n-learn@equanimitech`
+3. Needs [Node.js](https://nodejs.org). Restart Claude Code and say yes when it offers the status line.
 
 ## How it works
 
@@ -35,7 +18,7 @@ Then in any Claude Code session:
 2. **Work normally.** When a session taught you something, run `/harvest`: the agent mines the conversation for learning moments and files card candidates into a sift queue.
 3. **Sift.** Run `/sift` to promote harvested candidates to your deck, edit them, or dismiss them. You never keep a card you didn't choose.
 4. **Study.** Run `/study` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules.
-5. **Ambient cues (optional).** Wire the status line script into your settings and one due card's front appears as a retrieval cue. One cue, never a count.
+5. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. One cue, never a count.
 
 ## Commands
 
@@ -49,16 +32,7 @@ Then in any Claude Code session:
 
 ## Status line (optional)
 
-The plugin ships a composable status line script that shows one due card's front as a retrieval cue while Claude works. If nothing is due, it stays quiet. Wire it into `~/.claude/settings.json`, pointing at your installed plugin directory:
-
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "node \"/path/to/lull-n-learn/lib/statusline.mjs\""
-  }
-}
-```
+One due card's front shows in the status line as a retrieval cue while Claude works. If nothing is due, it stays quiet. Say yes to the first-run offer, or ask `/config` to set up the status line later. If you already have a status line, it keeps yours and appends the cue.
 
 No counter, no streak, no debt. The cue is a gift, not a demand.
 
