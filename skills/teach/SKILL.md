@@ -1,6 +1,6 @@
 ---
 name: teach
-description: Teach one piece of a lull-n-learn topic at a time through a Socratic walk-through in the terminal, following the map's prerequisite order. Use when the user runs /teach, says "teach me about X", "explain this node", "walk me through X", "teach me the full topic", or wants to learn a concept before studying cards.
+description: Teach one piece of a oliba topic at a time through a Socratic walk-through in the terminal, following the map's prerequisite order. Use when the user runs /teach, says "teach me about X", "explain this node", "walk me through X", "teach me the full topic", or wants to learn a concept before studying cards.
 ---
 
 # /teach — learn one piece at a time

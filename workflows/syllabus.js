@@ -23,11 +23,11 @@ if (!args.topic) {
 // When existingProject is just {id: "..."}, load the full project from disk via an agent.
 if (args.existingProject && args.existingProject.id && !args.existingProject.nodes) {
   const loaded = await agent(
-    `Read the lull-n-learn project with ID "${args.existingProject.id}" from disk.
+    `Read the oliba project with ID "${args.existingProject.id}" from disk.
 
 Run this command:
 \`\`\`bash
-node -e 'const d=process.env.LULL_N_LEARN_DIR||require("os").homedir()+"/.lull-n-learn";const p=require(d+"/projects.json")[process.argv[1]];console.log(JSON.stringify(p??null))' '${args.existingProject.id}'
+node -e 'const d=process.env.OLIBA_DIR||process.env.LULL_N_LEARN_DIR||require("os").homedir()+"/.oliba";const p=require(d+"/projects.json")[process.argv[1]];console.log(JSON.stringify(p??null))' '${args.existingProject.id}'
 \`\`\`
 
 Return the FULL project JSON as-is. If not found, return null.`,

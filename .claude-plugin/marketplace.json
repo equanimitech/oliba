@@ -1,0 +1,15 @@
+{
+  "name": "oliba",
+  "description": "òliba, agent-native spaced repetition for Claude Code, as its own marketplace.",
+  "owner": {
+    "name": "EquanimiTech",
+    "url": "https://equanimi.tech"
+  },
+  "plugins": [
+    {
+      "name": "oliba",
+      "source": "./",
+      "description": "Agent-native spaced repetition for Claude Code. Map a topic, learn it one piece at a time, keep it with FSRS reviews and a one-card status-line cue."
+    }
+  ]
+}

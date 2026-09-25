@@ -1,6 +1,6 @@
 ---
 name: study
-description: Run a spaced-repetition study session over due lull-n-learn cards, or score the status-line cue. Use when the user runs /study, says "let's study", "quiz me", "answer the cue", types an answer to the status-line card, or wants to practice what they've been learning. Accepts a tag or project to filter by (e.g. /study rust, /study code de la route) or an answer to the cue (e.g. /study single ownership).
+description: Run a spaced-repetition study session over due oliba cards, or score the status-line cue. Use when the user runs /study, says "let's study", "quiz me", "answer the cue", types an answer to the status-line card, or wants to practice what they've been learning. Accepts a tag or project to filter by (e.g. /study rust, /study code de la route) or an answer to the cue (e.g. /study single ownership).
 ---
 
 # Study session
