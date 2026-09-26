@@ -1,6 +1,6 @@
 export const meta = {
-  name: 'syllabus',
-  description: 'Map a topic into ordered modules with prerequisites and starter cards. With args.targetNode, deepen that one node instead (used by /teach). Returns data only and saves nothing: /syllabus and /teach persist the result with `cli.mjs lesson-save`.',
+  name: 'syllabus-map',
+  description: 'Internal to oliba, invoked by /syllabus and /teach; run those instead. Maps a topic into ordered modules with prerequisites and starter cards. With args.targetNode, deepen that one node instead (used by /teach). Returns data only and saves nothing: /syllabus and /teach persist the result with `cli.mjs lesson-save`.',
   phases: [
     { title: 'Calibrate', detail: 'Assess existing knowledge and work context' },
     { title: 'Scout', detail: 'Research the topic from multiple angles' },
@@ -17,7 +17,7 @@ if (typeof args === 'string') {
   args = { topic: args }
 }
 if (!args.topic) {
-  throw new Error('syllabus requires a topic — pass it as args or args.topic')
+  throw new Error('syllabus-map requires a topic — pass it as args or args.topic')
 }
 
 // When existingProject is just {id: "..."}, load the full project from disk via an agent.
