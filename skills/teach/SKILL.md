@@ -31,18 +31,19 @@ Match the topic against `project-list`. No map is needed: if nothing matches, th
 
 ## Mission and languages (once per project)
 
-If there is no project, or its `mission` is null, ask **one** `AskUserQuestion` with three questions, then save the answers. Never ask again once `mission` is set; a project with a mission asks nothing.
+If there is no project, or its `mission` is null, ask **one** `AskUserQuestion` with four questions, then save the answers. Never ask again once `mission` is set; a project with a mission asks nothing.
 
 1. Header "Why". "What do you want to be able to do with **<topic>**?" Options: "Use it at work", "Pass an exam or test", "Curiosity". The learner will often type their own; keep it to one line, e.g. "Run discovery calls with distribution lawyers this week".
 2. Header "Language". "Which language should I teach you in?" Options: the conversation's language (Recommended), then one or two likely others.
 3. Header "Terms". "Which language should the field's own terms stay in?" Options: "The sources' language (Recommended)", "The teaching language".
+4. Header "Sources". "Any sources to anchor on? (books, URLs, files)" Options: "Find the best one for me (Recommended)", "Official docs / the canonical reference". The learner types their own via "Other"; store what they name as a list, nothing for "Find the best one for me".
 
 Store languages as BCP 47 codes (`fr`, `pt-BR`, `en`). "The sources' language" is stored as nothing for now: set it with `project-set` once the primary source is chosen.
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-create --topic "<topic>" --mission "<why>" --language <code> [--term-language <code>]
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-create --topic "<topic>" --mission "<why>" --language <code> [--term-language <code>] [--sources "a,b"]
 # or, for an existing project with no mission:
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-set <projectId> --mission "<why>" --language <code> [--term-language <code>]
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-set <projectId> --mission "<why>" --language <code> [--term-language <code>] [--sources "a,b"]
 ```
 
 If the learner later says their goal changed, `project-set --mission` it and add a `mission-shift` record.
@@ -51,14 +52,14 @@ If the learner later says their goal changed, `project-set --mission` it and add
 
 Read `mission`, the `records` whose `supersededBy` is null, and the titles in `lessons`. Choose **one** skill in the zone of proximal development: the next thing the learner can almost do that moves the mission forward. A skill is a thing they can *do* at the end ("compute the damages", "pick the right opening question"), not a chapter.
 
-- **Named node** (`<topic>: <node>`), or a project **with a map**: take that node, or the next one on the path (topologically sort `nodes` by `edges`, ties alphabetical; skip `mastered` nodes and nodes that already have a lesson). If the node has no `guide`, deepen it first, and only it, with the Workflow tool (`scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/syllabus.js"`, `args: { topic, targetNode: "<node id>", existingProject, existingCards }`), then `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-save --project <projectId> < result.json` and `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-get` again. If that save fails, say what didn't save and stop.
+- **Named node** (`<topic>: <node>`), or a project **with a map**: take that node, or the next one on the path (topologically sort `nodes` by `edges`, ties alphabetical; skip `mastered` nodes and nodes that already have a lesson). If the node has no `guide`, deepen it first, and only it, with the Workflow tool (`name: "oliba:syllabus-map"`, never a `scriptPath`; `args` as a JSON object: `{ topic, targetNode: "<node id>", existingProject, existingCards }`), then `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" lesson-save --project <projectId> < result.json` and `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-get` again. If that save fails, say what didn't save and stop.
 - **No map:** choose from the mission and the records alone.
 
 Unsuperseded misconception records point straight at the next skill. Prior records let you skip what they already know.
 
 ## Find one primary source
 
-One source you teach from and the learner can go to next: the statute, the official doc, the canonical paper, the court's own guidance. Use `node.research` when it exists; otherwise search for it. Read it before you ask anything: you can only probe well from inside the material. If `termLanguage` is still null, set it now to this source's language.
+One source you teach from and the learner can go to next: the statute, the official doc, the canonical paper, the court's own guidance. Pick it from `project.sources` first, then `node.research`; search only when both are empty. When the learner names a source mid-sitting, add it with `project-set <projectId> --sources "<source>"` (it adds, never replaces). Read it before you ask anything: you can only probe well from inside the material. If `termLanguage` is still null, set it now to this source's language.
 
 ## The sitting: Socratic, in the terminal
 
