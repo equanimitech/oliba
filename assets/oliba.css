@@ -185,20 +185,33 @@ dl.glossary dt { font-weight: 600; margin-top: 1.1rem; }
 dl.glossary dd { margin: .15rem 0 0 1rem; }
 .avoid { color: var(--muted); font-size: .9rem; }
 
-/* Song pages: the player beside the lyrics on a wide screen, stacked on a phone. */
-main[data-type="song"] { max-width: 64rem; }
+/* Song pages: the player sticks to the top with every control, the lyrics read
+   big below it (beside the cifra and notes on a wide screen). */
+main[data-type="song"] { max-width: 60rem; }
 .song { display: grid; gap: 0 2.5rem; }
 @media (min-width: 56rem) {
-  .song { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .song .deck { position: sticky; top: 1rem; }
+  .song { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
 }
 .song h2 { margin-top: 1.5rem; }
-oliba-player { display: block; }
-oliba-player figure { margin: 1rem 0; }
+oliba-player {
+  display: block;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 1;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  padding: .25rem 0;
+}
+oliba-player figure { margin: .5rem 0; }
 oliba-player figcaption { font: .85rem/1.4 system-ui, sans-serif; color: var(--muted); margin-bottom: .35rem; }
 oliba-player audio { width: 100%; }
-oliba-player p { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .75rem 0; font: .9rem/1.4 system-ui, sans-serif; }
+oliba-player p { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .5rem 0; font: .9rem/1.4 system-ui, sans-serif; }
 oliba-player p[hidden] { display: none; }
+oliba-player select { font: inherit; color: inherit; background: transparent; border: 1px solid var(--rule); border-radius: 6px; padding: .35rem .5rem; max-width: 100%; }
+oliba-player input.follow { accent-color: var(--accent); }
+oliba-player span.offset { display: inline-flex; gap: .35rem; align-items: center; color: var(--muted); }
+oliba-player span.offset[hidden] { display: none; }
+oliba-player output.offset { font-variant-numeric: tabular-nums; min-width: 5ch; text-align: center; }
 oliba-player button {
   font: .9rem/1.3 system-ui, sans-serif;
   color: inherit;
@@ -213,19 +226,28 @@ oliba-player button[aria-pressed="true"] { border-color: var(--accent); backgrou
 oliba-player output.clock { font: 600 1.4rem/1 ui-monospace, "SF Mono", Menlo, monospace; min-width: 6ch; }
 oliba-player input.rate { accent-color: var(--accent); }
 oliba-player output.range { color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+/* On a phone the player stays short: labels go to screen readers only. */
+@media (max-width: 40rem) {
+  oliba-player p { gap: .35rem; margin: .35rem 0; }
+  oliba-player figure { margin: .35rem 0; }
+  oliba-player button { padding: .3rem .55rem; }
+  oliba-player output.clock { font-size: 1.1rem; }
+  oliba-player .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 .song pre { white-space: pre-wrap; font: .95rem/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
-.lrc p { margin: 0; padding: .1rem .4rem; border-radius: 4px; min-height: 1.4em; }
+/* The lyric sheet: a reading size, stanzas apart. */
+.lyrics .lrc p, .song .lyrics pre { font: clamp(1.35rem, 1.1rem + 1vw, 1.6rem)/1.5 Charter, "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
+.lrc p { margin: 0; padding: .05rem .4rem; border-radius: 4px; min-height: 1.5em; }
+.lrc p.gap { margin-top: 1.1em; }
 .lrc p.now { background: var(--wash); color: var(--accent); }
-.lyrics p.offset { font: .85rem/1.4 system-ui, sans-serif; color: var(--muted); }
-.lyrics p.offset[hidden] { display: none; }
-.lyrics input.offset { width: 5rem; font: inherit; color: inherit; background: transparent; border: 1px solid var(--rule); border-radius: 6px; padding: .2rem .4rem; }
+.lyrics.following .lrc p { cursor: pointer; }
 ul.songs { padding-left: 1.2rem; }
 ul.songs li { margin: .4rem 0; }
 
 @media print {
   body { background: #fff; color: #000; padding: 0; font-size: 11pt; }
   fieldset.quiz button, fieldset.quiz input, fieldset.quiz output, footer.save { display: none; }
-  oliba-player, .lyrics p.offset { display: none; }
+  oliba-player { display: none; }
   fieldset.quiz details { color: #000; }
   a { color: #000; }
 }

@@ -1,18 +1,29 @@
 // òliba player: switch guide and backing at the same position, loop a section,
-// slow down without changing pitch. No network, no storage, no library: one
-// native <audio> per version. Inlined into every song page by `cli.mjs song-add`.
+// slow down without changing pitch, follow the lyrics. No network, no library:
+// one native <audio> per version. Inlined into every song page by `cli.mjs song-add`.
 //
 // <oliba-player data-unplayable="…">
-//   <figure [data-sync]><figcaption>Guia · Bb</figcaption><audio controls src="guia.m4a"></audio></figure>
-//   <p class="transport" hidden> clock, speed </p>
-//   <p class="loop" hidden> A, B, clear </p>
+//   <figure data-sync="<track ids>"><figcaption>Guia · Bb</figcaption><audio controls src="guia.m4a"></audio></figure>
+//   <p class="transport" hidden> clock, speed, A, B, clear </p>
 //   <p class="sections" hidden> <button data-start="42" data-end="65">Refrão</button> </p>
+//   <p class="lyric-bar" hidden> select.track, input.follow, button.nudge, output.offset </p>
 // </oliba-player>
-// Without JS every version still plays with the browser's own controls.
-// Synced lyrics (.lrc [data-t]) highlight only for a version marked data-sync.
+// <section class="lyrics"> one <div class="lrc" data-track="<id>"> (or <pre>) per LRCLIB track </section>
+// Without JS every version still plays with the browser's own controls, and the
+// CLI's lyric track reads as it is. A version follows a track's timing only
+// when its figure lists that track in data-sync. Two viewer choices persist in
+// localStorage (the lyric track, per song, and following on or off); storage
+// that throws just means nothing is remembered.
 
 /** 62.54 → "1:02.5" @param {number} t */
 const olibaClock = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;
+
+const olibaStore = {
+  /** @param {string} key */
+  get: (key) => { try { return localStorage.getItem(key); } catch { return null; } },
+  /** @param {string} key @param {string} value */
+  set: (key, value) => { try { localStorage.setItem(key, value); } catch { /* not remembered */ } },
+};
 
 class OlibaPlayer extends HTMLElement {
   connectedCallback() {
@@ -26,15 +37,28 @@ class OlibaPlayer extends HTMLElement {
     const rateOut = /** @type {HTMLOutputElement} */ ($('output.rate'));
     const range = /** @type {HTMLOutputElement} */ ($('output.range'));
     const page = this.closest('main') ?? document;
-    const lines = /** @type {HTMLElement[]} */ ([...page.querySelectorAll('.lrc [data-t]')]);
-    const offsetInput = /** @type {HTMLInputElement | null} */ (page.querySelector('input.offset'));
+    const tracks = /** @type {HTMLElement[]} */ ([...page.querySelectorAll('.lyrics [data-track]')]);
+    const picker = /** @type {HTMLSelectElement | null} */ (this.querySelector('select.track'));
+    const followBox = /** @type {HTMLInputElement | null} */ (this.querySelector('input.follow'));
+    const offsetBox = /** @type {HTMLElement | null} */ (this.querySelector('span.offset'));
+    const offsetOut = /** @type {HTMLOutputElement | null} */ (this.querySelector('output.offset'));
+    const lang = document.documentElement.lang || undefined;
 
     let active = 0;
     /** @type {number | null} */ let a = null;
     /** @type {number | null} */ let b = null;
     let frame = 0;
+    let offset = 0;
     /** @type {HTMLElement | null} */ let lit = null;
+    /** @type {HTMLElement | undefined} */ let track = tracks.find((t) => !t.hidden);
     const current = () => audios[active];
+    const following = () => followBox?.checked ?? false;
+    /** The shown track's lines, when following and this version keeps its time. */
+    const lines = () => {
+      const id = track?.dataset.track ?? '';
+      const synced = (figures[active].dataset.sync ?? '').split(' ').includes(id);
+      return following() && synced ? /** @type {HTMLElement[]} */ ([...(track?.querySelectorAll('[data-t]') ?? [])]) : [];
+    };
 
     // Version toggle, built from the captions: the one move practice is made of.
     const toggle = document.createElement('p');
@@ -53,7 +77,6 @@ class OlibaPlayer extends HTMLElement {
       for (const caption of this.querySelectorAll('figcaption')) caption.hidden = true;
     }
     for (const hidden of this.querySelectorAll('p[hidden]')) hidden.removeAttribute('hidden');
-    if (lines.length) offsetInput?.closest('p')?.removeAttribute('hidden');
 
     /** @param {number} i */
     const select = (i) => {
@@ -88,15 +111,14 @@ class OlibaPlayer extends HTMLElement {
     const render = () => {
       const t = current().currentTime;
       clock.value = olibaClock(t);
-      if (!lines.length) return;
-      const synced = figures[active].hasAttribute('data-sync');
-      const at = t - Number(offsetInput?.value || 0);
-      const line = synced ? lines.findLast((l) => Number(l.dataset.t) <= at) ?? null : null;
+      const line = lines().findLast((l) => Number(l.dataset.t) <= t - offset) ?? null;
       if (line === lit) return;
       lit?.classList.remove('now');
       line?.classList.add('now');
-      line?.scrollIntoView({ block: 'nearest' });
       lit = line;
+      // Scroll only when the line has left the space below the sticky player.
+      const box = line?.getBoundingClientRect();
+      if (box && (box.top < this.getBoundingClientRect().bottom || box.bottom > innerHeight)) line?.scrollIntoView({ block: 'center' });
     };
 
     const tick = () => {
@@ -150,16 +172,61 @@ class OlibaPlayer extends HTMLElement {
         current().play();
       });
     }
-    // A synced line is a seek target: click it to sing from there.
-    for (const line of lines) {
-      line.addEventListener('click', () => {
-        if (!figures[active].hasAttribute('data-sync')) return;
-        current().currentTime = Math.max(0, Number(line.dataset.t) + Number(offsetInput?.value || 0));
+
+    // Lyrics: which track to read, whether to follow it, and how late it runs.
+    const pickKey = picker ? `oliba-lyrics:${picker.dataset.song}:${picker.dataset.default}` : '';
+    /** @param {string} id */
+    const showTrack = (id) => {
+      const next = tracks.find((t) => t.dataset.track === id);
+      if (!next) return;
+      for (const t of tracks) t.hidden = t !== next;
+      track = next;
+      lit?.classList.remove('now');
+      lit = null;
+      render();
+    };
+    if (picker) {
+      const saved = olibaStore.get(pickKey);
+      if (saved && [...picker.options].some((o) => o.value === saved)) {
+        picker.value = saved;
+        showTrack(saved);
+      }
+      picker.addEventListener('change', () => {
+        olibaStore.set(pickKey, picker.value);
+        showTrack(picker.value);
       });
     }
-    offsetInput?.addEventListener('input', render);
+    const setFollow = () => {
+      if (offsetBox) offsetBox.hidden = !following();
+      page.querySelector('.lyrics')?.classList.toggle('following', following());
+      lit?.classList.remove('now');
+      lit = null;
+      render();
+    };
+    if (followBox) {
+      followBox.checked = olibaStore.get('oliba-follow-lyrics') !== 'off';
+      followBox.addEventListener('change', () => {
+        olibaStore.set('oliba-follow-lyrics', followBox.checked ? 'on' : 'off');
+        setFollow();
+      });
+    }
+    for (const nudge of this.querySelectorAll('button.nudge')) {
+      nudge.addEventListener('click', () => {
+        offset = Math.round((offset + Number(/** @type {HTMLElement} */ (nudge).dataset.step)) * 10) / 10;
+        if (offsetOut) offsetOut.value = `${offset > 0 ? '+' : ''}${offset.toLocaleString(lang)} s`;
+        render();
+      });
+    }
+    // A followed line is a seek target: click it to sing from there.
+    for (const line of page.querySelectorAll('.lrc [data-t]')) {
+      line.addEventListener('click', () => {
+        if (!lines().includes(/** @type {HTMLElement} */ (line))) return;
+        current().currentTime = Math.max(0, Number(/** @type {HTMLElement} */ (line).dataset.t) + offset);
+      });
+    }
 
     setRate();
+    setFollow();
     select(0);
   }
 }

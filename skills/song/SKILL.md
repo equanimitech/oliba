@@ -104,6 +104,7 @@ Get the song first (`song-get <songId>`), then one call:
 | "a guia está em A" | `song-version <songId> --file guia.m4a --key A` (the version's `file` from `song-get`) |
 | "a professora mandou em outro tom" | **Add from Downloads**, then add it to this song with `song-version` |
 | "busca a letra de novo" | `song-lyrics <songId>` |
+| "a letra está errada", "está fora de sincronia" | `song-lyrics <songId> --list` (LRCLIB tracks: album, length, synced; `kept` is the one shown), ask which with one `AskUserQuestion` (album · m:ss), then `song-lyrics <songId> --pick <id>`. The page also has the picker, the "acompanhar a letra" toggle and a ±0,5 s delay in its player bar: say so when it's only the timing |
 | pastes lyrics | `song-set <songId> --lyrics "<what they pasted>"` (replaces fetched lyrics) |
 
 Sections are typed to you: the page shows a clock so the learner can say where a part starts. Reply in one line: what changed, and the page path.
