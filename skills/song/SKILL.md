@@ -100,6 +100,7 @@ Get the song first (`song-get <songId>`), then one call:
 | "está pronta", "entrou no repertório" | `song-set <songId> --status repertoire` |
 | "guarda essa", "não vou cantar mais" | `song-set <songId> --status retired` |
 | "voltei a trabalhar nela" | `song-set <songId> --status working` |
+| "marca essa como festa", "tira a etiqueta voz" | `song-set <songId> --tags "festa,voz"`: the full list, old and new (an empty value clears). The repertoire filters by tag |
 | pastes a cifra | `song-set <songId> --cifra "<exactly what they pasted>"` |
 | a note from class | `song-set <songId> --notes "<their words>"` |
 | "o tom original é C" | `song-set <songId> --original-key C` |
@@ -108,6 +109,8 @@ Get the song first (`song-get <songId>`), then one call:
 | "busca a letra de novo" | `song-lyrics <songId>` |
 | "a letra está errada", "está fora de sincronia" | `song-lyrics <songId> --list` (LRCLIB tracks: album, length, synced; `kept` is the one shown), ask which with one `AskUserQuestion` (album · m:ss), then `song-lyrics <songId> --pick <id>`. The page also has the picker, the "acompanhar a letra" toggle and a ±0,5 s delay in its player bar: say so when it's only the timing |
 | pastes lyrics | `song-set <songId> --lyrics "<what they pasted>"` (replaces fetched lyrics) |
+
+The repertoire and each song page also have a status switch and tag chips: the learner can change them there and click Salvar; oliba applies it on their next message. Nothing for you to do.
 
 Sections are typed to you: the page shows a clock so the learner can say where a part starts. Reply in one line: what changed, and the page path.
 
