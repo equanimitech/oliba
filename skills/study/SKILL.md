@@ -22,13 +22,13 @@ It checks in a fixed order and prints one `mode`:
 | `mode` | Meaning | Do |
 |---|---|---|
 | `grill` | "grill me on …" | Go to **Grill**. |
-| `filter` | A known tag or project topic | Run the session below with `--tag "<tag>"`. |
+| `filter` | A known tag, project tag or project topic | Run the session below with `--tag "<tag>"`. |
 | `cue` | A cue is showing and the text is the user's answer to it | Go to **Answer the cue**. |
 | `ask` | The text is a tag *and* a cue is showing | Ask one `AskUserQuestion`: "Answer the cue" or "Study <tag>". Then follow that row. |
 | `results` | Lesson results from the page's save button | Go to **Lesson results**. |
 | `plain` | Nothing to filter | Run the session below over every due card. If `unmatched` is set, say in one line that nothing matched it. |
 
-`due --tag` first matches card tags; if no card carries that tag, it matches project topics (case- and accent-insensitive substring) and returns that project's cards. If several projects match, it returns `{ "ambiguous": true, "projects": [{ "id", "topic" }] }` instead of cards: ask which one with `AskUserQuestion` (one option per topic), then use `--tag project:<id>` for the rest of the session.
+`due --tag` first matches card tags; if no card carries that tag, it matches project tags (the tags set on the index page or with `project-set --tags`, case- and accent-insensitive) and returns the cards of every project with that tag; then project topics (case- and accent-insensitive substring) and returns that project's cards. Archived projects' cards never come due; they return as they were when the project is unarchived, and you don't mention the time away. If several projects match, it returns `{ "ambiguous": true, "projects": [{ "id", "topic" }] }` instead of cards: ask which one with `AskUserQuestion` (one option per topic), then use `--tag project:<id>` for the rest of the session.
 
 ## Answer the cue
 
@@ -68,7 +68,7 @@ The Socratic drill: attack the weakest points until they hold. Not an FSRS sessi
    node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" grill-targets "<project part of target>"
    ```
 
-   `{ ambiguous: true, projects }`: ask which one with `AskUserQuestion`, then run it again with that topic. A failure (no project matches): say so in one line and stop. With a node part, keep only the records and cards whose `node` / `node:<id>` tag matches that node's title in `project-get`.
+   `{ ambiguous: true, projects }`: ask which one with `AskUserQuestion`, then run it again with that topic. A failure (no project matches, or the project is archived): say what it reports in one line and stop. With a node part, keep only the records and cards whose `node` / `node:<id>` tag matches that node's title in `project-get`.
 
 2. If `misconceptions` and `weakCards` are both empty: "Nothing weak to grill on **<topic>** right now." and stop.
 

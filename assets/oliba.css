@@ -244,10 +244,40 @@ oliba-player output.range { color: var(--muted); font-family: ui-monospace, "SF 
 ul.songs { padding-left: 1.2rem; }
 ul.songs li { margin: .4rem 0; }
 
+/* Home index: projects under their tags, archived ones folded away, and the
+   controls index.js wakes up (tag chips, archive, one save for all). */
+section.project { padding-left: .75rem; border-left: 2px solid transparent; }
+section.project.changed { border-left-color: var(--accent); }
+section.project h3 { margin-top: 1.25rem; }
+p.manage { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; font: .85rem/1.4 system-ui, sans-serif; color: var(--muted); }
+p.manage[hidden], footer.actions[hidden] { display: none; }
+p.manage .chips { display: contents; }
+p.manage .chip { display: inline-flex; align-items: center; gap: .15rem; padding: .1rem .2rem .1rem .55rem; background: var(--wash); border-radius: 999px; color: var(--ink); }
+p.manage button, footer.actions button {
+  font: .85rem/1.3 system-ui, sans-serif;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: .3rem .6rem;
+  cursor: pointer;
+}
+p.manage .chip button { border: 0; border-radius: 999px; padding: 0 .35rem; }
+p.manage button:hover, footer.actions button:hover { background: var(--wash); }
+p.manage button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+p.manage input.tag { font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 6px; padding: .25rem .5rem; width: 9rem; }
+details.archived { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+details.archived summary { cursor: pointer; font: .9rem/1.4 system-ui, sans-serif; color: var(--muted); }
+footer.actions { position: sticky; bottom: 0; margin-top: 2rem; padding: .75rem 0; background: var(--paper); border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+footer.actions button.save-actions:not(:disabled) { color: var(--paper); background: var(--accent); border-color: var(--accent); }
+footer.actions button:disabled { opacity: .45; cursor: default; }
+footer.actions output { color: var(--muted); font: .85rem/1.4 system-ui, sans-serif; }
+footer.actions code.prompt { display: block; white-space: pre-wrap; word-break: break-all; user-select: all; background: var(--wash); padding: .35rem .5rem; }
+
 @media print {
   body { background: #fff; color: #000; padding: 0; font-size: 11pt; }
   fieldset.quiz button, fieldset.quiz input, fieldset.quiz output, footer.save { display: none; }
-  oliba-player { display: none; }
+  oliba-player, p.manage, footer.actions { display: none; }
   fieldset.quiz details { color: #000; }
   a { color: #000; }
 }

@@ -61,6 +61,8 @@ All data lives in `~/.oliba/` as plain JSON. No account, no server, no sync. You
 
 Lessons are files too: `~/.oliba/lessons/<topic>/` holds each lesson, an `index.html` linking them, and the topic's `glossary.html`; `~/.oliba/glossary.html` gathers every topic's terms. `~/.oliba/index.html` is the front door: every topic, its mission, and links to its lessons and study guide (`cli.mjs index --open` rebuilds and opens it). Each lesson carries its own styles and script, so it works offline and can be sent on its own. The page stores nothing and sends nothing. Click **Save my results** at the end of a lesson: it downloads your first attempts as a small JSON file, and oliba picks it up from `~/Downloads` on your next prompt, rates the lesson's cards from it (a miss comes back sooner), and deletes the file. That's it. If your browser won't download, the confirmation offers a `/study` prompt to paste instead.
 
+The front door also groups topics by tag and folds archived ones away. Archive a topic or change its tags there: the page can't write your data, so **Save** downloads a small `oliba-actions-*.json` file that oliba applies (and deletes) on your next message, like lesson results; **Copy command** gives the same change as a command to paste. An archived topic's cards rest, out of study and the cue, until you bring it back; nothing is deleted. `/oliba:study <tag>` studies every topic with that tag.
+
 Override the data directory with `OLIBA_DIR` for testing or custom locations.
 
 ## Acknowledgements
