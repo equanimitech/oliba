@@ -185,9 +185,47 @@ dl.glossary dt { font-weight: 600; margin-top: 1.1rem; }
 dl.glossary dd { margin: .15rem 0 0 1rem; }
 .avoid { color: var(--muted); font-size: .9rem; }
 
+/* Song pages: the player beside the lyrics on a wide screen, stacked on a phone. */
+main[data-type="song"] { max-width: 64rem; }
+.song { display: grid; gap: 0 2.5rem; }
+@media (min-width: 56rem) {
+  .song { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .song .deck { position: sticky; top: 1rem; }
+}
+.song h2 { margin-top: 1.5rem; }
+oliba-player { display: block; }
+oliba-player figure { margin: 1rem 0; }
+oliba-player figcaption { font: .85rem/1.4 system-ui, sans-serif; color: var(--muted); margin-bottom: .35rem; }
+oliba-player audio { width: 100%; }
+oliba-player p { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .75rem 0; font: .9rem/1.4 system-ui, sans-serif; }
+oliba-player p[hidden] { display: none; }
+oliba-player button {
+  font: .9rem/1.3 system-ui, sans-serif;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: .4rem .7rem;
+  cursor: pointer;
+}
+oliba-player button:hover { background: var(--wash); }
+oliba-player button[aria-pressed="true"] { border-color: var(--accent); background: var(--wash); color: var(--accent); }
+oliba-player output.clock { font: 600 1.4rem/1 ui-monospace, "SF Mono", Menlo, monospace; min-width: 6ch; }
+oliba-player input.rate { accent-color: var(--accent); }
+oliba-player output.range { color: var(--muted); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.song pre { white-space: pre-wrap; font: .95rem/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+.lrc p { margin: 0; padding: .1rem .4rem; border-radius: 4px; min-height: 1.4em; }
+.lrc p.now { background: var(--wash); color: var(--accent); }
+.lyrics p.offset { font: .85rem/1.4 system-ui, sans-serif; color: var(--muted); }
+.lyrics p.offset[hidden] { display: none; }
+.lyrics input.offset { width: 5rem; font: inherit; color: inherit; background: transparent; border: 1px solid var(--rule); border-radius: 6px; padding: .2rem .4rem; }
+ul.songs { padding-left: 1.2rem; }
+ul.songs li { margin: .4rem 0; }
+
 @media print {
   body { background: #fff; color: #000; padding: 0; font-size: 11pt; }
   fieldset.quiz button, fieldset.quiz input, fieldset.quiz output, footer.save { display: none; }
+  oliba-player, .lyrics p.offset { display: none; }
   fieldset.quiz details { color: #000; }
   a { color: #000; }
 }
