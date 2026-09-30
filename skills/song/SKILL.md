@@ -48,9 +48,11 @@ The teacher sends audio files over WhatsApp. The learner downloads them in Whats
    node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" inbox
    ```
 
-   It prints `{ dir, groups: [{ title, files: [{ path, name, title, role, duration }] }] }`: audio from the last 14 days (`--days N` for more) that no song has claimed yet. Files whose names match loosely and whose lengths match are one group; `role` is `guia` ("com voz", "guia", "with vocals"), `base` ("sem voz", "instrumental", "playback", "karaoke", "no vocals") or `null`.
+   It prints `{ dir, groups: [{ title, kind, files: [{ path, name, title, role, duration }] }] }`: audio from the last 14 days (`--days N` for more) that no song or class has claimed yet. Files whose names match loosely and whose lengths match are one group; `role` is `guia` ("com voz", "guia", "with vocals"), `base` ("sem voz", "instrumental", "playback", "karaoke", "no vocals") or `null`.
 
-   No groups: "Nothing new in Downloads. Download the teacher's audio in WhatsApp Web, then `/song add` again." and stop.
+   A group with `kind: "class"` is a recording of 10 minutes or more: never propose it as a song. Say in one line, in `language`, "<name> parece uma aula: `/class`" and leave it.
+
+   No `kind: "song"` groups: "Nothing new in Downloads. Download the teacher's audio in WhatsApp Web, then `/song add` again." and stop.
 
 2. For each group, **one** `AskUserQuestion` call, with only the questions you need:
    - "Which song is this?" Options: "New: <Title> — <Artist>" (the title cleaned up, "flor de liz" → "Flor de Lis"; the artist only if you're sure), then any existing song whose title is close ("Add to <title>"), then "Skip".
@@ -102,7 +104,7 @@ Get the song first (`song-get <songId>`), then one call:
 | a note from class | `song-set <songId> --notes "<their words>"` |
 | "o tom original é C" | `song-set <songId> --original-key C` |
 | "a guia está em A" | `song-version <songId> --file guia.m4a --key A` (the version's `file` from `song-get`) |
-| "a professora mandou em outro tom" | **Add from Downloads**, then add it to this song with `song-version` |
+| "veio uma guia nova em outro tom" | **Add from Downloads**, then add it to this song with `song-version` |
 | "busca a letra de novo" | `song-lyrics <songId>` |
 | "a letra está errada", "está fora de sincronia" | `song-lyrics <songId> --list` (LRCLIB tracks: album, length, synced; `kept` is the one shown), ask which with one `AskUserQuestion` (album · m:ss), then `song-lyrics <songId> --pick <id>`. The page also has the picker, the "acompanhar a letra" toggle and a ±0,5 s delay in its player bar: say so when it's only the timing |
 | pastes lyrics | `song-set <songId> --lyrics "<what they pasted>"` (replaces fetched lyrics) |
