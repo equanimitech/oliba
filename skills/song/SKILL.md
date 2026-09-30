@@ -97,10 +97,10 @@ Get the song first (`song-get <songId>`), then one call:
 | The learner says | Run |
 |---|---|
 | "o refrão é de 0:42 a 1:05" | `song-set <songId> < patch.json` with every section, old and new: `{ "sections": [{ "name": "Refrão", "start": "0:42", "end": "1:05" }] }` |
-| "está pronta", "entrou no repertório" | `song-set <songId> --status repertoire` |
-| "guarda essa", "não vou cantar mais" | `song-set <songId> --status retired` |
-| "voltei a trabalhar nela" | `song-set <songId> --status working` |
-| "marca essa como festa", "tira a etiqueta voz" | `song-set <songId> --tags "festa,voz"`: the full list, old and new (an empty value clears). The repertoire filters by tag |
+| "X tá ativa", "voltei a cantar X" | `song-set <songId> --status active` |
+| "X tá guardada", "guarda essa", "não vou cantar mais" | `song-set <songId> --status stored` |
+| "marca X como samba" | `song-set <songId> --tags "<its tags from song-get>,samba"`: the full list, old and new |
+| "tira a tag Y" | `song-set <songId> --tags "<its tags without Y>"` (an empty value clears them all) |
 | pastes a cifra | `song-set <songId> --cifra "<exactly what they pasted>"` |
 | a note from class | `song-set <songId> --notes "<their words>"` |
 | "o tom original é C" | `song-set <songId> --original-key C` |
@@ -110,7 +110,7 @@ Get the song first (`song-get <songId>`), then one call:
 | "a letra está errada", "está fora de sincronia" | `song-lyrics <songId> --list` (LRCLIB tracks: album, length, synced; `kept` is the one shown), ask which with one `AskUserQuestion` (album · m:ss), then `song-lyrics <songId> --pick <id>`. The page also has the picker, the "acompanhar a letra" toggle and a ±0,5 s delay in its player bar: say so when it's only the timing |
 | pastes lyrics | `song-set <songId> --lyrics "<what they pasted>"` (replaces fetched lyrics) |
 
-The repertoire and each song page also have a status switch and tag chips: the learner can change them there and click Salvar; oliba applies it on their next message. Nothing for you to do.
+A song is `active` (being sung now; the repertoire shows these first, as "Ativas") or `stored` (put away, folded under "Guardadas"); a new song is active. Tags show as quiet labels. The pages are for reading and practice only: every change goes through you, here.
 
 Sections are typed to you: the page shows a clock so the learner can say where a part starts. Reply in one line: what changed, and the page path.
 

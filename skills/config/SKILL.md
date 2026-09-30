@@ -61,7 +61,9 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-archive <projectId>            
 node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-set <projectId> --tags "work,music"  # replaces the tags; --tags "" clears them
 ```
 
-Match the topic with `project-list` (it shows `archived` and `tags`). The index page has the same buttons: its Save downloads a small file that oliba applies on the learner's next message, so nothing else is needed.
+Match the topic with `project-list` (it shows `archived` and `tags`). The index page only shows the result: every change goes through these commands.
+
+After a change to how pages look, `index --all` re-renders every page from the store (oliba also does it once per upgrade, at session start).
 
 
 After updating, confirm in one line what changed. Example: "Status line now shows code-de-la-route cards only."
