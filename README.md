@@ -31,7 +31,14 @@ Local-first. Anti-guilt.
 | `/oliba:study [tag \| project \| answer]` | FSRS retrieval session, or score the status-line cue |
 | `/oliba:study grill me on <topic>` | Drill recorded misconceptions and weak cards |
 | `/oliba:study results [prompt]` | Rate a lesson's cards from saved quiz results by hand (normally automatic) |
+| `/oliba:song [add \| <title>]` | File the teacher's recordings; one page per song with a practice player |
 | `/oliba:config` | Settings and status line setup |
+
+## Songs
+
+For a singer with a teacher. Download the teacher's audio in WhatsApp Web (or AirDrop it) and run `/oliba:song add`: oliba finds the new files in `~/Downloads`, pairs the guide ("com voz") with the backing ("sem voz"), asks which song and key, and copies them next to the song's page in `~/.oliba/songs/<topic>/`. The page switches guide and backing at the same spot, loops a section, slows down without changing pitch, and shows the lyrics beside the player, lit line by line when their timing fits the recording. Tell `/oliba:song` where the chorus starts, paste a cifra, or say a song is ready; the repertoire groups songs by status, with no dates and no counts. A song is never a card.
+
+Lyrics come from [LRCLIB](https://lrclib.net), fetched for your own study and stored only on your machine.
 
 ## Status line (optional)
 
@@ -62,6 +69,8 @@ The way `/teach` works owes a great deal to **Matt Pocock** and his [`/teach` sk
 - **Grilling**, from his separate [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) and [`grill-me`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me) skills: relentless questioning as a way to stress-test understanding. oliba's grill mode points it at your recorded misconceptions.
 
 oliba's code, styles and wording are its own, written to fit its spaced-repetition core; the ideas above are his. Thank you, Matt.
+
+Song lyrics come from [LRCLIB](https://lrclib.net) by tranxuanthang and its contributors: a free, open lyrics database with an open API. The song player is a native `<audio>` element; the library survey behind it and the planned lesson components is in `docs/research/2026-09-30-lesson-components.md`.
 
 ## License
 
