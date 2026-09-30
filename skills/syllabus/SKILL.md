@@ -116,7 +116,7 @@ echo '{"artifactUrl":"<url>"}' | node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" projec
 
 ## 6. Report
 
-Say: "**<topic>** — N nodes, M starter cards. [link to artifact] `/teach <topic>` starts at the beginning." with N and M taken from the verified `project-get` read-back.
+Say: "**<topic>** — N nodes, M starter cards. [link to artifact] `/teach <topic>` starts at the beginning. All your topics: `~/.oliba/index.html`." with N and M taken from the verified `project-get` read-back.
 
 Nothing else. The user comes back when ready.
 

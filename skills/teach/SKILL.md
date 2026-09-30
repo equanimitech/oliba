@@ -234,7 +234,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" read-trace <projectId> <nodeId> --compr
 
 ### Close
 
-One line, in `language`: the lesson's path, that its questions are now cards, and to click save at the end when they're done. "Lesson ready: `<file>`. Click save at the end when you're done; `/teach <topic> ?` for questions." No summary, no count of lessons, cards or anything else.
+One line, in `language`: the lesson's path, that its questions are now cards, and to click save at the end when they're done. "Lesson ready: `<file>`. Click save at the end when you're done; `/teach <topic> ?` for questions. All your topics: `~/.oliba/index.html`." No summary, no count of lessons, cards or anything else.
 
 ---
 
