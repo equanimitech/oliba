@@ -545,7 +545,7 @@ Run: `head -5 skills/read/SKILL.md` — confirm frontmatter is well-formed YAML.
 
 - [ ] **Step 3: Smoke test by loading**
 
-Run: `node "${CLAUDE_PLUGIN_ROOT:-/Users/rafa/Developer/equanimitech/lull-n-learn}/lib/cli.mjs" project-list` — confirm CLI still works and the skill file doesn't break the plugin structure.
+Run: `node lib/cli.mjs project-list` — confirm CLI still works and the skill file doesn't break the plugin structure.
 
 - [ ] **Step 4: Commit**
 

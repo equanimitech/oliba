@@ -22,7 +22,7 @@ A goes first. It is what a new user sees on day one, and B's `/teach` builds on 
 
 ## Pitch A: install in one step, four skills, `/syllabus`
 
-**Bet:** In one week, a non-developer (Rafa's cofounder) installs lull alone from a 3-line README, gets offered the status line on first run, and sees four skills: `/syllabus`, `/teach`, `/study`, `/config`. `/syllabus` maps a topic without deepening it up front.
+**Bet:** In one week, a non-developer (the author's cofounder) installs lull alone from a 3-line README, gets offered the status line on first run, and sees four skills: `/syllabus`, `/teach`, `/study`, `/config`. `/syllabus` maps a topic without deepening it up front.
 
 **Why it matters:** Today, installing means hand-editing JSON twice, once for `extraKnownMarketplaces` and once for a `statusLine` path into a versioned cache dir (`README.md:11-60`). The SessionStart hook still advertises `/answer`, `/sift`, `/card` and `/harvest` (`hooks/hooks.json:8`), and those three capture skills produced 0 of 533 cards. `/deep-lesson` deepens k nodes up front, which cost ~1.44M tokens for a map that never landed. The cofounder can't get past step one.
 
@@ -67,7 +67,7 @@ A goes first. It is what a new user sees on day one, and B's `/teach` builds on 
 
 **Domain knowledge:**
 - The shell line assumes `claude` is on PATH. The native installer puts it in `~/.local/bin`. Verify this on a clean user account before calling it one step.
-- `/teach` collides with Rafa's personal `~/.claude/skills/teach`. Check what a bare `/teach` resolves to.
+- `/teach` collides with the author's personal `~/.claude/skills/teach`. Check what a bare `/teach` resolves to.
 - Plugin hooks run with `${CLAUDE_PLUGIN_ROOT}`, but `settings.json` doesn't expand it. That's why the shim exists.
 
 ### Acceptance
@@ -88,7 +88,7 @@ A goes first. It is what a new user sees on day one, and B's `/teach` builds on 
 
 **Bet:** In one week, `/teach` gains a mission and two language fields, asked once. It teaches one skill per lesson as a single shareable HTML file with instant-feedback quizzes. Quiz items and corrected misconceptions become cards, and `/study` grill drills the weak spots.
 
-**Why it matters:** The field run showed a ~30k-token lesson that Rafa used and shared beat the ~1.44M-token map. Lessons in French law also need terms kept as they are (« rupture brutale ») while teaching in the learner's language. Today `/read` just mirrors the node content's language.
+**Why it matters:** The field run showed a ~30k-token lesson that the author used and shared beat the ~1.44M-token map. Lessons in French law also need terms kept as they are (« rupture brutale ») while teaching in the learner's language. Today `/read` just mirrors the node content's language.
 
 ### Boundaries
 

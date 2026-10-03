@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node.js built-ins only. ES modules (`.mjs`) with `// @ts-check` and JSDoc. Tests with `node --test` and `node:assert/strict`.
 
-**Spec:** `/Users/rafa/Developer/equanimitech/ultralearn/docs/design.md`
+**Spec:** `docs/design.md`
 
 ## Global Constraints
 
@@ -1286,10 +1286,10 @@ Create `hooks/hooks.json`:
 
 - [ ] **Step 2: Validate the JSON and the shell quoting**
 
-Run: `node -e "const h = require('/Users/rafa/Developer/equanimitech/ultralearn/hooks/hooks.json'); console.log(h.hooks.SessionStart[0].hooks[0].type)"`
+Run: `node -e "const h = require('./hooks/hooks.json'); console.log(h.hooks.SessionStart[0].hooks[0].type)"`
 Expected: prints `command`
 
-Run: `bash -c "$(node -p "require('/Users/rafa/Developer/equanimitech/ultralearn/hooks/hooks.json').hooks.SessionStart[0].hooks[0].command")"`
+Run: `bash -c "$(node -p "require('./hooks/hooks.json').hooks.SessionStart[0].hooks[0].command")"`
 Expected: prints the announce line, including "Scott Young's Ultralearning", with no shell error
 
 - [ ] **Step 3: Commit**
@@ -1395,7 +1395,7 @@ An FSRS-driven retrieval session. Retrieval means production: the user answers b
 
 - [ ] **Step 3: Verify frontmatter parses**
 
-Run: `node -e "const fs=require('fs');for(const f of ['skills/add.md','skills/review.md']){const t=fs.readFileSync('/Users/rafa/Developer/equanimitech/ultralearn/'+f,'utf8');if(!/^---\nname: .+\ndescription: .+\n---\n/.test(t))throw new Error(f+' frontmatter bad');}console.log('ok')"`
+Run: `node -e "const fs=require('fs');for(const f of ['skills/add.md','skills/review.md']){const t=fs.readFileSync(f,'utf8');if(!/^---\nname: .+\ndescription: .+\n---\n/.test(t))throw new Error(f+' frontmatter bad');}console.log('ok')"`
 Expected: prints `ok`
 
 - [ ] **Step 4: Commit**
@@ -1495,7 +1495,7 @@ If the session had no learning moments, say so plainly. An empty extraction is a
 
 - [ ] **Step 3: Verify frontmatter parses**
 
-Run: `node -e "const fs=require('fs');for(const f of ['skills/inbox.md','skills/extract.md']){const t=fs.readFileSync('/Users/rafa/Developer/equanimitech/ultralearn/'+f,'utf8');if(!/^---\nname: .+\ndescription: .+\n---\n/.test(t))throw new Error(f+' frontmatter bad');}console.log('ok')"`
+Run: `node -e "const fs=require('fs');for(const f of ['skills/inbox.md','skills/extract.md']){const t=fs.readFileSync(f,'utf8');if(!/^---\nname: .+\ndescription: .+\n---\n/.test(t))throw new Error(f+' frontmatter bad');}console.log('ok')"`
 Expected: prints `ok`
 
 - [ ] **Step 4: Commit**
@@ -1569,7 +1569,6 @@ Expected: all tests PASS (33 tests across 4 files)
 Run:
 
 ```bash
-cd /Users/rafa/Developer/equanimitech/ultralearn && \
 export ULTRALEARN_DIR=$(mktemp -d) && \
 node lib/cli.mjs inbox-add --front "What does FSRS stability represent?" --back "Days until recall probability decays to 90%." --context "smoke test" && \
 node lib/cli.mjs inbox-list && \

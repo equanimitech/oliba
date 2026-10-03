@@ -1,6 +1,6 @@
 # òliba
 
-Catalan for barn owl. Formerly lull-n-learn; data in `~/.lull-n-learn/` moves to `~/.oliba/` on first run.
+Catalan for barn owl.
 
 Agent-native spaced repetition for Claude Code.
 
@@ -8,11 +8,18 @@ Map a topic, learn it one piece at a time, keep it with spaced repetition. Groun
 
 Local-first. Anti-guilt.
 
+## Requirements
+
+- [Claude Code](https://claude.com/claude-code).
+- [Node.js](https://nodejs.org) 18 or newer. The current LTS is best.
+- macOS or Linux. The hooks run in a POSIX shell. Windows is untested; WSL should work.
+- `/oliba:class` is macOS only: it transcribes with [Vibe](https://github.com/thewh1teagle/vibe).
+
 ## Install
 
-1. In a terminal: `claude plugin marketplace add equanimitech/oliba && claude plugin install oliba@oliba`
-2. Or inside Claude Code: `/plugin marketplace add equanimitech/oliba`, then `/plugin install oliba@oliba`
-3. Needs [Node.js](https://nodejs.org). Restart Claude Code and say yes when it offers the status line.
+1. In a terminal: `claude plugin marketplace add https://github.com/equanimitech/oliba.git && claude plugin install oliba@oliba`
+2. Or inside Claude Code: `/plugin marketplace add https://github.com/equanimitech/oliba.git`, then `/plugin install oliba@oliba`
+3. Restart Claude Code and say yes when it offers the status line.
 
 ## How it works
 
@@ -65,6 +72,8 @@ The front door also groups topics by tag and folds archived ones away. To archiv
 
 Override the data directory with `OLIBA_DIR` for testing or custom locations.
 
+Coming from lull-n-learn? Data in `~/.lull-n-learn/` moves to `~/.oliba/` on first run.
+
 ## Acknowledgements
 
 The way `/teach` works owes a great deal to **Matt Pocock** and his [`/teach` skill](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach), from his MIT-licensed [skills](https://github.com/mattpocock/skills) collection. Using it on a real learning need showed us what oliba was missing. From him we learned:
@@ -80,6 +89,16 @@ oliba's code, styles and wording are its own, written to fit its spaced-repetiti
 Class recordings are transcribed by [Vibe](https://github.com/thewh1teagle/vibe) by thewh1teagle (MIT), through its `sona` CLI, which runs [whisper.cpp](https://github.com/ggml-org/whisper.cpp) by Georgi Gerganov and contributors (MIT) on OpenAI's Whisper large-v3-turbo model, locally.
 
 Song lyrics come from [LRCLIB](https://lrclib.net) by tranxuanthang and its contributors: a free, open lyrics database with an open API. The song player is a native `<audio>` element; the library survey behind it and the planned lesson components is in `docs/research/2026-09-30-lesson-components.md`.
+
+## Development
+
+No dependencies, no build step. Run the tests with:
+
+```sh
+node --test lib/*.test.mjs
+```
+
+Set `OLIBA_DIR` to a scratch folder to try the CLI without touching your own data.
 
 ## License
 
