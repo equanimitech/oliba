@@ -4,7 +4,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Card } from '../types'
+import type { Card, Rating } from '../types'
 
 const card = atom({ plugin: 'oliba', key: 'card' } as const, null, { shape: 'card-1' })
 
@@ -31,7 +31,32 @@ const firstDue = async ($: EngineInterface, tags: (string | undefined)[]) => {
 // Every topic once, from `start` round to the one before it.
 export const topicOrder = (topics: string[], start: number) => [...topics.slice(start), ...topics.slice(0, start)]
 
-type Rating = 'again' | 'hard' | 'good'
+const RATINGS: readonly Rating[] = ['again', 'hard', 'good']
+
+// A suggested grade for a typed answer, or undefined on any failure: then the
+// learner rates alone and nothing is shown.
+const suggest = async ($: EngineInterface, front: string, back: string, typed: string) => {
+  try {
+    const r = await $.model.complete({
+      model: 'haiku',
+      maxTokens: 120,
+      system: 'You grade one flashcard answer. Reply with JSON only.',
+      prompt: [
+        `Card front: ${front}`,
+        `Correct answer: ${back}`,
+        `Learner's answer: ${typed}`,
+        'Reply {"rating": "again" | "hard" | "good", "why": "..."}: again = wrong or missing the point, hard = partly right, good = right in substance.',
+        '"why": at most 12 words, in the card\'s language, neutral, no scores or numbers.',
+      ].join('\n'),
+    })
+    if (!r.isAnswered) return undefined
+    const json = JSON.parse(r.text.match(/\{[\s\S]*\}/)?.[0] ?? '')
+    if (!RATINGS.includes(json.rating) || typeof json.why !== 'string') return undefined
+    return { suggested: json.rating as Rating, why: json.why.split(/\s+/).slice(0, 12).join(' ') }
+  } catch {
+    return undefined
+  }
+}
 
 export const register: Register = (on, options) => {
   const topics = String(options.waitTopics ?? '').split(',').map(t => t.trim()).filter(Boolean)
@@ -73,7 +98,12 @@ export const register: Register = (on, options) => {
     const reveal = async (typed?: string) => {
       const shown = await cli($, ['reveal', c.id])
       if (!shown) return update($, card, cur => isThis(cur) ? null : cur)
-      await update($, card, cur => isThis(cur) && cur ? { ...cur, typed: typed ?? cur.typed, back: shown.back } : cur)
+      const now = await update($, card, cur => isThis(cur) && cur ? { ...cur, typed: typed ?? cur.typed, back: shown.back } : cur)
+      // A typed answer gets a suggested grade; a blank one is self-rated.
+      const answer = isThis(now) ? now?.typed.trim() : ''
+      if (!answer) return
+      const graded = await suggest($, c.front, shown.back, answer)
+      if (graded) await update($, card, cur => isThis(cur) && cur?.back !== undefined ? { ...cur, ...graded } : cur)
     }
     const skip = () => claim()
     const rate = async (rating: Rating) => {
@@ -107,15 +137,24 @@ export const register: Register = (on, options) => {
 
     // Backs hold markdown; the band scrolls past maxRows, so nothing is cut here.
     const Markdown = 'Markdown' in els ? els.Markdown : undefined
+    // The suggested grade is primary and focused, so Enter confirms it; 1/2/3
+    // still pick any. With no suggestion, Got it is primary and nothing is focused.
+    const primary = c.suggested ?? 'good'
+    const grade = (key: string, label: string, hotkey: string, rating: Rating) => (
+      <Button key={key} label={label} hotkey={hotkey} onPress={() => rate(rating)}
+        {...(rating === primary ? { variant: 'primary' as const } : {})}
+        {...(rating === c.suggested ? { autoFocus: true as const } : {})} />
+    )
     return (
       <Box flexDirection="column" width={width} paddingX={2} paddingY={1}>
         {front}
         {c.typed && <Text dimColor>you: {c.typed}</Text>}
         {Markdown ? <Markdown key="back" text={c.back} /> : <Text>{c.back}</Text>}
+        {c.why && <Text dimColor>{c.why}</Text>}
         <Box gap={2}>
-          <Button key="missed" label="Missed" hotkey="1" onPress={() => rate('again')} />
-          <Button key="shaky" label="Shaky" hotkey="2" onPress={() => rate('hard')} />
-          <Button key="gotit" label="Got it" hotkey="3" variant="primary" onPress={() => rate('good')} />
+          {grade('missed', 'Missed', '1', 'again')}
+          {grade('shaky', 'Shaky', '2', 'hard')}
+          {grade('gotit', 'Got it', '3', 'good')}
           <Button key="skip" label="Skip" onPress={skip} />
         </Box>
       </Box>
