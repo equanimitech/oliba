@@ -3,13 +3,13 @@ import type { TestBody } from 'claude-code/testing'
 
 import { topicOrder } from './wait-band'
 
-const band = (surface: 'terminal' | 'desktop') => ({
+const band = (surface: 'terminal' | 'desktop', isWorking = true) => ({
   plugin: 'oliba',
   component: 'AbovePrompt',
   surface,
   props: {
     hasSurvey: false,
-    isWorking: true,
+    isWorking,
     maxRows: 10,
     bodyColumns: 60,
     scroll: { offset: 0, bodyRows: 10 },
@@ -184,13 +184,15 @@ const graded = async ($: Parameters<TestBody>[0], on: Parameters<TestBody>[1], r
   return { ui, rates }
 }
 
-test('a suggested grade is primary and focused; Enter confirms it', async ($, on) => {
+test('a suggested grade is named, not chosen: no autoFocus, only Got it primary', async ($, on) => {
   const { ui, rates } = await graded($, on, 'Sure: {"rating": "hard", "why": "Close, but voglio is the blunter want"}')
-  expect(await ui.find({ type: 'Text', text: /blunter want/ })).toBeDefined()
-  const shaky = await ui.find({ key: 'shaky' })
-  expect(shaky?.props.variant).toBe('primary')
-  expect(shaky?.props.autoFocus).toBe(true)
-  expect((await ui.find({ key: 'gotit' }))?.props.variant).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: 'Shaky? Close, but voglio is the blunter want' })).toBeDefined()
+  for (const key of ['missed', 'shaky', 'gotit']) {
+    expect((await ui.find({ key }))?.props.autoFocus).toBeUndefined()
+  }
+  expect((await ui.find({ key: 'shaky' }))?.props.variant).toBeUndefined()
+  expect((await ui.find({ key: 'missed' }))?.props.variant).toBeUndefined()
+  expect((await ui.find({ key: 'gotit' }))?.props.variant).toBe('primary')
   await ui.press({ key: 'shaky' })
   expect(rates).toEqual(['hard'])
   await ui.unmount()
@@ -264,4 +266,45 @@ test('session start leaves waitTopics alone once it is set', { options: { waitTo
 
   await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
   expect(calls).toEqual([])
+})
+
+// A pending card, nothing typed, the turn over: the band yields to the engine.
+const idle = (on: Parameters<TestBody>[1]) => {
+  on('process.run', (_, e) => ok(({ due: [{ id: 'c1', front: 'front' }], reveal: { id: 'c1', back: 'back' } } as Record<string, unknown>)[e.argv[2] ?? '']))
+  on('ui.render', ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>engine</Text>
+  })
+  on('turn.start', (_, e) => ({ turnId: e.turnId }))
+}
+
+test('not working, nothing typed: the band draws nothing', async ($, on) => {
+  idle(on)
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const ui = await $.ui.mount(band('terminal', false))
+  expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
+  expect(await ui.find({ type: 'Text', text: /front/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('not working, an answer typed: the band stays', async ($, on) => {
+  idle(on)
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const working = await $.ui.mount(band('terminal'))
+  await working.input({ key: 'answer', text: 'one owner' })
+  await working.unmount()
+  const ui = await $.ui.mount(band('terminal', false))
+  expect(await ui.find({ type: 'Text', text: /front/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('not working, back revealed: the band stays', async ($, on) => {
+  idle(on)
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const working = await $.ui.mount(band('terminal'))
+  await working.press({ key: 'reveal' })
+  await working.unmount()
+  const ui = await $.ui.mount(band('terminal', false))
+  expect(await ui.find({ key: 'gotit' })).toBeDefined()
+  await ui.unmount()
 })

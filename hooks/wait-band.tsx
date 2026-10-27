@@ -32,6 +32,7 @@ const firstDue = async ($: EngineInterface, tags: (string | undefined)[]) => {
 export const topicOrder = (topics: string[], start: number) => [...topics.slice(start), ...topics.slice(0, start)]
 
 const RATINGS: readonly Rating[] = ['again', 'hard', 'good']
+const LABELS: Record<Rating, string> = { again: 'Missed', hard: 'Shaky', good: 'Got it' }
 
 // A suggested grade for a typed answer, or undefined on any failure: then the
 // learner rates alone and nothing is shown.
@@ -91,6 +92,9 @@ export const register: Register = (on, options) => {
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const c = await read($, card)
     if (c === null || e.props.hasSurvey) return next(e)
+    // The band leaves when the turn ends, unless the learner is mid-card; the
+    // card stays in the atom and returns on the next turn.
+    if (!e.props.isWorking && !c.typed.trim() && c.back === undefined) return next(e)
 
     const els = $.ui.resolve(e)
     const { Box, Button, Text } = els
@@ -153,20 +157,18 @@ export const register: Register = (on, options) => {
 
     // Backs hold markdown; the band scrolls past maxRows, so nothing is cut here.
     const Markdown = 'Markdown' in els ? els.Markdown : undefined
-    // The suggested grade is primary and focused, so Enter confirms it; 1/2/3
-    // still pick any. With no suggestion, Got it is primary and nothing is focused.
-    const primary = c.suggested ?? 'good'
+    // Self-assessment is the learner's call: Got it is primary, nothing is
+    // focused, whatever Haiku suggested. The suggestion is only the dim line.
     const grade = (key: string, label: string, hotkey: string, rating: Rating) => (
       <Button key={key} label={label} hotkey={hotkey} onPress={() => rate(rating)}
-        {...(rating === primary ? { variant: 'primary' as const } : {})}
-        {...(rating === c.suggested ? { autoFocus: true as const } : {})} />
+        {...(rating === 'good' ? { variant: 'primary' as const } : {})} />
     )
     return (
       <Box flexDirection="column" width={width} paddingX={2} paddingY={1}>
         {front}
         {c.typed && <Text dimColor>you: {c.typed}</Text>}
         {Markdown ? <Markdown key="back" text={c.back} /> : <Text>{c.back}</Text>}
-        {c.why && <Text dimColor>{c.why}</Text>}
+        {c.why && c.suggested && <Text dimColor>{LABELS[c.suggested]}? {c.why}</Text>}
         <Box gap={2}>
           {grade('missed', 'Missed', '1', 'again')}
           {grade('shaky', 'Shaky', '2', 'hard')}
