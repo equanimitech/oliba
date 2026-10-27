@@ -33,6 +33,9 @@ const firstDue = async ($: EngineInterface, tags: (string | undefined)[], skippe
 // Every topic once, from `start` round to the one before it.
 export const topicOrder = (topics: string[], start: number) => [...topics.slice(start), ...topics.slice(0, start)]
 
+// Nothing typed, back not shown: the learner is not mid-card.
+const untouched = (c: Card) => !c.typed.trim() && c.back === undefined
+
 const RATINGS: readonly Rating[] = ['again', 'hard', 'good']
 const LABELS: Record<Rating, string> = { again: 'Missed', hard: 'Shaky', good: 'Got it' }
 
@@ -82,7 +85,7 @@ export const register: Register = (on, options) => {
 
   // Session memory: cards skipped (not offered again), cards being rated.
   const skipped = new Set<string>()
-  const rating = new Set<string>()
+  const rateInFlight = new Set<string>()
 
   // One card per main-loop turn, fetched only when none is in progress. The
   // turn starts first (next(e) resolves at the start, not the end), so the
@@ -92,7 +95,7 @@ export const register: Register = (on, options) => {
     const result = await next(e)
     if (e.agentId === undefined) {
       const held = await read($, card)
-      if (held && !held.typed.trim() && held.back === undefined && !rating.has(held.id)) {
+      if (held && untouched(held) && !rateInFlight.has(held.id)) {
         const due = await cli($, ['due', '--hide-back'])
         if (Array.isArray(due) && !due.some(c => c.id === held.id)) await update($, card, cur => cur?.id === held.id ? null : cur)
       }
@@ -111,7 +114,7 @@ export const register: Register = (on, options) => {
     if (c === null || e.props.hasSurvey) return next(e)
     // The band leaves when the turn ends, unless the learner is mid-card; the
     // card stays in the atom and returns on the next turn.
-    if (!e.props.isWorking && !c.typed.trim() && c.back === undefined) return next(e)
+    if (!e.props.isWorking && untouched(c)) return next(e)
 
     const els = $.ui.resolve(e)
     const { Box, Button, Text } = els
@@ -143,18 +146,20 @@ export const register: Register = (on, options) => {
       if (graded) await update($, card, cur => isThis(cur) && cur?.back !== undefined ? { ...cur, ...graded } : cur)
     }
     const skip = async () => {
-      if (!rating.has(c.id) && await claim()) skipped.add(c.id)
+      if (!rateInFlight.has(c.id) && await claim()) skipped.add(c.id)
     }
     // The card stays in the atom until the rate CLI has written, so a turn
     // starting meanwhile cannot fetch it again.
     const rate = async (grade: Rating) => {
-      if (rating.has(c.id)) return
-      rating.add(c.id)
+      if (rateInFlight.has(c.id)) return
+      rateInFlight.add(c.id)
       try {
+        // A press on a stale render: the card is already rated or gone.
+        if (!isThis(await read($, card))) return
         if (await cli($, ['rate', c.id, grade])) await claim()
         else $.ui.toast('oliba: not saved, try again')
       } finally {
-        rating.delete(c.id)
+        rateInFlight.delete(c.id)
       }
     }
 

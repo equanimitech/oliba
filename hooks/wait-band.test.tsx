@@ -335,7 +335,8 @@ test('a card rated elsewhere is dropped at the next turn', async ($, on) => {
 })
 
 test('a skipped card is not picked again', async ($, on) => {
-  on('process.run', (_, e) => ok(e.argv[2] === 'due' ? [{ id: 'c1', front: 'first' }, { id: 'c2', front: 'second' }] : {}))
+  const cards = [{ id: 'c1', front: 'first' }, { id: 'c2', front: 'second' }]
+  on('process.run', (_, e) => ok(e.argv[2] === 'due' ? cards.slice(0, Number(e.argv[e.argv.indexOf('--limit') + 1])) : {}))
   on('turn.start', (_, e) => ({ turnId: e.turnId }))
 
   await $.turn.start({ text: 'hi', turnId: 't1' })
@@ -369,3 +370,22 @@ test('a turn starting while a rating is being written fetches nothing', async ($
   expect(dues).toHaveLength(1)
   await ui.unmount()
 })
+
+for (const [name, act] of [['typed into', 'input'], ['revealed', 'press']] as const) {
+  test(`a card ${name} survives the stale check`, async ($, on) => {
+    let due = [{ id: 'c1', front: 'front' }]
+    on('process.run', (_, e) => ok(({ due, reveal: { id: 'c1', back: 'back' } } as Record<string, unknown>)[e.argv[2] ?? '']))
+    on('turn.start', (_, e) => ({ turnId: e.turnId }))
+
+    await $.turn.start({ text: 'hi', turnId: 't1' })
+    const working = await $.ui.mount(band('terminal'))
+    if (act === 'input') await working.input({ key: 'answer', text: 'one owner' })
+    else await working.press({ key: 'reveal' })
+    await working.unmount()
+    due = []
+    await $.turn.start({ text: 'again', turnId: 't2' })
+    const ui = await $.ui.mount(band('terminal', false))
+    expect(await ui.find({ type: 'Text', text: /front/ })).toBeDefined()
+    await ui.unmount()
+  })
+}
