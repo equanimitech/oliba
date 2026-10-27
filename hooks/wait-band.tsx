@@ -111,17 +111,18 @@ export const register: Register = (on, options) => {
   // One card per main-loop turn, fetched only when none is in progress. The
   // turn starts first (next(e) resolves at the start, not the end), so the
   // fetch never delays it. An untouched held card is dropped once another
-  // session has rated it.
+  // session has rated it or snoozed the band.
   on('turn.start', async ($, e, next) => {
     const result = await next(e)
+    const snoozed = e.agentId === undefined && await isSnoozed($, sessionSnoozed)
     if (e.agentId === undefined) {
       const held = await read($, card)
       if (held && untouched(held) && !rateInFlight.has(held.id)) {
-        const due = await cli($, ['due', '--hide-back'])
+        const due = snoozed ? [] : await cli($, ['due', '--hide-back'])
         if (Array.isArray(due) && !due.some(c => c.id === held.id)) await update($, card, cur => cur?.id === held.id ? null : cur)
       }
     }
-    if (e.agentId === undefined && (await read($, card)) === null && !(await isSnoozed($, sessionSnoozed))) {
+    if (e.agentId === undefined && (await read($, card)) === null && !snoozed) {
       // No topics: whatever is due first. Topics: a random one, then the rest in order.
       const start = Math.floor(Math.random() * topics.length)
       const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined], skipped)

@@ -461,3 +461,38 @@ test('an expired snooze shows the band again', async ($, on) => {
   expect(await ui.find({ type: 'Text', text: /front/ })).toBeDefined()
   await ui.unmount()
 })
+
+// A card held on the band, then waitSnoozedUntil set as if by another session.
+const heldThenSnoozed = async (
+  $: Parameters<TestBody>[0], on: Parameters<TestBody>[1], until: number, typed?: string,
+) => {
+  const log = { sets: [], dues: [] as string[], config: {} as unknown }
+  snoozable(on, log)
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const ui = await $.ui.mount(band('terminal'))
+  if (typed) await ui.input({ key: 'answer', text: typed })
+  log.config = { waitSnoozedUntil: new Date(until).toISOString() }
+  log.dues.length = 0
+  await $.turn.start({ text: 'again', turnId: 't2' })
+  return { ui, log }
+}
+
+test("a card held through another session's snooze is dropped", async ($, on) => {
+  const { ui, log } = await heldThenSnoozed($, on, Date.now() + 36e5)
+  expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
+  expect(await ui.find({ type: 'Text', text: /front/ })).toBeUndefined()
+  expect(log.dues).toEqual([])
+  await ui.unmount()
+})
+
+test("a touched card is kept through another session's snooze", async ($, on) => {
+  const { ui } = await heldThenSnoozed($, on, Date.now() + 36e5, 'one owner')
+  expect(await ui.find({ type: 'Text', text: /front/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a held card is kept under an expired snooze', async ($, on) => {
+  const { ui } = await heldThenSnoozed($, on, Date.now() - 1000)
+  expect(await ui.find({ type: 'Text', text: /front/ })).toBeDefined()
+  await ui.unmount()
+})
