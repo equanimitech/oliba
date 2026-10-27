@@ -1,5 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
+import { topicOrder } from './wait-band'
+
 const band = (surface: 'terminal' | 'desktop') => ({
   plugin: 'oliba',
   component: 'AbovePrompt',
@@ -23,8 +25,6 @@ for (const surface of ['terminal', 'desktop'] as const) {
       due: [{ id: 'c1', front: 'What owns a Rust value?' }],
       reveal: { id: 'c1', back: 'exactly **one** owner' },
       rate: { id: 'c1' },
-      'current-cue': { id: 'c1' },
-      'clear-cue': {},
     }
     on('process.run', (_, e) => (argvs.push([...e.argv]), ok(answers[e.argv[2] ?? ''])))
     on('ui.render', ($, e) => {
@@ -46,7 +46,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(argvs[0]?.[0]).toBe('node')
     expect(argvs[0]?.[1]).toMatch(/\/lib\/cli\.mjs$/)
     expect(argvs.map(a => a.slice(2).join(' '))).toEqual([
-      'due --limit 1 --hide-back', 'reveal c1', 'rate c1 good', 'current-cue', 'clear-cue',
+      'due --limit 1 --hide-back', 'reveal c1', 'rate c1 good --clear-cue',
     ])
     expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
     await ui.unmount()
@@ -67,6 +67,12 @@ test('waitTopics: tries each topic, draws nothing when none is due', { options: 
   expect([...tags].sort()).toEqual(['code-de-la-route', 'italiano'])
   expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
   await ui.unmount()
+})
+
+test('topicOrder: from the start, round to the one before it', () => {
+  expect(topicOrder(['a', 'b', 'c'], 0)).toEqual(['a', 'b', 'c'])
+  expect(topicOrder(['a', 'b', 'c'], 1)).toEqual(['b', 'c', 'a'])
+  expect(topicOrder(['a', 'b', 'c'], 2)).toEqual(['c', 'a', 'b'])
 })
 
 test('a blank answer hides the you: line', async ($, on) => {

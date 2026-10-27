@@ -18,21 +18,30 @@ const cli = async ($: EngineInterface, args: string[]) => {
   }
 }
 
+// The first card due under the first tag that has one; undefined, no tag.
+const firstDue = async ($: EngineInterface, tags: (string | undefined)[]) => {
+  for (const tag of tags) {
+    // An ambiguous tag answers { ambiguous, projects }: nothing due for it.
+    const result = await cli($, ['due', '--limit', '1', '--hide-back'].concat(tag ? ['--tag', tag] : []))
+    if (Array.isArray(result) && result[0]) return result[0] as { id: string; front: string }
+  }
+  return undefined
+}
+
+// Every topic once, from `start` round to the one before it.
+export const topicOrder = (topics: string[], start: number) => [...topics.slice(start), ...topics.slice(0, start)]
+
+type Rating = 'again' | 'hard' | 'good'
+
 export const register: Register = (on, options) => {
   const topics = String(options.waitTopics ?? '').split(',').map(t => t.trim()).filter(Boolean)
 
   // One card per main-loop turn, fetched only when none is in progress.
   on('turn.start', async ($, e, next) => {
     if (e.agentId === undefined && (await read($, card)) === null) {
-      // No topics: whatever is due first. Topics: a random one, then the rest.
-      const order = topics.length ? [...topics].sort(() => Math.random() - 0.5) : [undefined]
-      let due
-      for (const tag of order) {
-        // An ambiguous tag answers { ambiguous, projects }: nothing due for it.
-        const result = await cli($, ['due', '--limit', '1', '--hide-back'].concat(tag ? ['--tag', tag] : []))
-        due = Array.isArray(result) ? result[0] : undefined
-        if (due) break
-      }
+      // No topics: whatever is due first. Topics: a random one, then the rest in order.
+      const start = Math.floor(Math.random() * topics.length)
+      const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined])
       if (due) await update($, card, () => ({ id: due.id, front: due.front, typed: '' }))
     }
     return next(e)
@@ -67,21 +76,20 @@ export const register: Register = (on, options) => {
       await update($, card, cur => isThis(cur) && cur ? { ...cur, typed: typed ?? cur.typed, back: shown.back } : cur)
     }
     const skip = () => claim()
-    const rate = async (rating: string) => {
+    const rate = async (rating: Rating) => {
       const taken = await claim()
       if (!taken) return
-      if (!(await cli($, ['rate', c.id, rating]))) {
+      if (!(await cli($, ['rate', c.id, rating, '--clear-cue']))) {
         await update($, card, cur => cur ?? taken)
         return $.ui.toast('oliba: not saved, try again')
       }
-      const cue = await cli($, ['current-cue'])
-      if (cue?.id === c.id) await cli($, ['clear-cue'])
     }
 
+    const front = <Text>🦉 {c.front}</Text>
     if (c.back === undefined) {
       return (
         <Box flexDirection="column" width={width} paddingX={2} paddingY={1}>
-          <Text>🦉 {c.front}</Text>
+          {front}
           <Box gap={2}>
             {Input && <Input
               key="answer"
@@ -101,7 +109,7 @@ export const register: Register = (on, options) => {
     const Markdown = 'Markdown' in els ? els.Markdown : undefined
     return (
       <Box flexDirection="column" width={width} paddingX={2} paddingY={1}>
-        <Text>🦉 {c.front}</Text>
+        {front}
         {c.typed && <Text dimColor>you: {c.typed}</Text>}
         {Markdown ? <Markdown key="back" text={c.back} /> : <Text>{c.back}</Text>}
         <Box gap={2}>
