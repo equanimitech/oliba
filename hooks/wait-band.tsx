@@ -28,7 +28,9 @@ export const register: Register = (on, options) => {
       const order = topics.length ? [...topics].sort(() => Math.random() - 0.5) : [undefined]
       let due
       for (const tag of order) {
-        ;[due] = (await cli($, ['due', '--limit', '1', '--hide-back'].concat(tag ? ['--tag', tag] : []))) ?? []
+        // An ambiguous tag answers { ambiguous, projects }: nothing due for it.
+        const result = await cli($, ['due', '--limit', '1', '--hide-back'].concat(tag ? ['--tag', tag] : []))
+        due = Array.isArray(result) ? result[0] : undefined
         if (due) break
       }
       if (due) await update($, card, () => ({ id: due.id, front: due.front, typed: '' }))
@@ -46,16 +48,34 @@ export const register: Register = (on, options) => {
     const Input = 'Input' in els ? els.Input : undefined
     const width = e.props.bodyColumns
 
-    const reveal = async (typed: string) => {
-      const shown = await cli($, ['reveal', c.id])
-      if (!shown) return update($, card, () => null)
-      await update($, card, cur => cur && { ...cur, typed, back: shown.back })
+    // Every write checks the card is still this one: a press can land after
+    // another press, or after a new card, has already changed it.
+    const isThis = (cur: Card | null) => cur?.id === c.id
+    // Takes the card off the band; the card taken, or undefined when a press
+    // before this one already took it.
+    const claim = async () => {
+      let taken: Card | undefined
+      await update($, card, cur => {
+        taken = isThis(cur) && cur ? cur : undefined
+        return taken ? null : cur
+      })
+      return taken
     }
+    const reveal = async (typed?: string) => {
+      const shown = await cli($, ['reveal', c.id])
+      if (!shown) return update($, card, cur => isThis(cur) ? null : cur)
+      await update($, card, cur => isThis(cur) && cur ? { ...cur, typed: typed ?? cur.typed, back: shown.back } : cur)
+    }
+    const skip = () => claim()
     const rate = async (rating: string) => {
-      await cli($, ['rate', c.id, rating])
+      const taken = await claim()
+      if (!taken) return
+      if (!(await cli($, ['rate', c.id, rating]))) {
+        await update($, card, cur => cur ?? taken)
+        return $.ui.toast('oliba: not saved, try again')
+      }
       const cue = await cli($, ['current-cue'])
       if (cue?.id === c.id) await cli($, ['clear-cue'])
-      await update($, card, () => null)
     }
 
     if (c.back === undefined) {
@@ -67,11 +87,11 @@ export const register: Register = (on, options) => {
               key="answer"
               placeholder="your answer"
               submitLabel="reveal"
-              onInput={typed => void update($, card, cur => cur && { ...cur, typed })}
+              onInput={typed => void update($, card, cur => isThis(cur) && cur ? { ...cur, typed } : cur)}
               onSubmit={typed => void reveal(typed)}
             />}
-            <Button key="reveal" label="Reveal" variant="primary" onPress={() => reveal(c.typed)} />
-            <Button key="skip" label="Skip" onPress={() => update($, card, () => null)} />
+            <Button key="reveal" label="Reveal" variant="primary" onPress={() => reveal()} />
+            <Button key="skip" label="Skip" onPress={skip} />
           </Box>
         </Box>
       )
@@ -88,6 +108,7 @@ export const register: Register = (on, options) => {
           <Button key="missed" label="Missed" hotkey="1" onPress={() => rate('again')} />
           <Button key="shaky" label="Shaky" hotkey="2" onPress={() => rate('hard')} />
           <Button key="gotit" label="Got it" hotkey="3" variant="primary" onPress={() => rate('good')} />
+          <Button key="skip" label="Skip" onPress={skip} />
         </Box>
       </Box>
     )
