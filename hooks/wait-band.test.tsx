@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 import type { TestBody } from 'claude-code/testing'
 
-import { topicOrder } from './wait-band'
+import { nextFour, topicOrder } from './wait-band'
 
 const band = (surface: 'terminal' | 'desktop', isWorking = true) => ({
   plugin: 'oliba',
@@ -47,7 +47,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(argvs[0]?.[0]).toBe('node')
     expect(argvs[0]?.[1]).toMatch(/\/lib\/cli\.mjs$/)
     expect(argvs.map(a => a.slice(2).join(' '))).toEqual([
-      'due --limit 1 --hide-back', 'reveal c1', 'rate c1 good',
+      'config-get', 'due --limit 1 --hide-back', 'reveal c1', 'rate c1 good',
     ])
     expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
     await ui.unmount()
@@ -65,7 +65,7 @@ test('waitTopics: tries each topic, draws nothing when none is due', { options: 
 
   await $.turn.start({ text: 'hi', turnId: 't1' })
   const ui = await $.ui.mount(band('terminal'))
-  expect([...tags].sort()).toEqual(['code-de-la-route', 'italiano'])
+  expect(tags.filter(t => t !== 'config-get').sort()).toEqual(['code-de-la-route', 'italiano'])
   expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
   await ui.unmount()
 })
@@ -160,7 +160,7 @@ test('skip on the back view leaves the card unscored', async ($, on) => {
   const ui = await $.ui.mount(band('terminal'))
   await revealed(ui)
   await ui.press({ key: 'skip' })
-  expect(calls).toEqual(['due', 'reveal'])
+  expect(calls).toEqual(['config-get', 'due', 'reveal'])
   expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
   await ui.unmount()
 })
@@ -314,7 +314,7 @@ test('the turn starts before the card is fetched', async ($, on) => {
 
   const result = await $.turn.start({ text: 'hi', turnId: 't1' })
   expect(result).toEqual({ turnId: 't1' })
-  expect(order).toEqual(['start', 'due'])
+  expect(order).toEqual(['start', 'config-get', 'due'])
 })
 
 test('a card rated elsewhere is dropped at the next turn', async ($, on) => {
@@ -389,3 +389,75 @@ for (const [name, act] of [['typed into', 'input'], ['revealed', 'press']] as co
     await ui.unmount()
   })
 }
+
+test('nextFour: today before 04:00, tomorrow from 04:00 on', () => {
+  expect(nextFour(new Date(2026, 9, 27, 3, 0))).toEqual(new Date(2026, 9, 27, 4, 0))
+  expect(nextFour(new Date(2026, 9, 27, 4, 0))).toEqual(new Date(2026, 9, 28, 4, 0))
+  expect(nextFour(new Date(2026, 9, 27, 15, 30))).toEqual(new Date(2026, 9, 28, 4, 0))
+})
+
+// Two due cards. `config` answers config-get; config-set and due argv are collected.
+const snoozable = (on: Parameters<TestBody>[1], log: { sets: string[][]; dues: string[]; config: unknown }) => {
+  on('process.run', (_, e) => {
+    if (e.argv[2] === 'config-set') log.sets.push(e.argv.slice(3))
+    if (e.argv[2] === 'due') log.dues.push(e.argv.slice(3).join(' '))
+    return ok(({
+      due: [{ id: 'c1', front: 'front' }, { id: 'c2', front: 'second' }],
+      reveal: { id: 'c1', back: 'back' },
+      'config-get': log.config,
+      'config-set': {},
+    } as Record<string, unknown>)[e.argv[2] ?? ''])
+  })
+  on('ui.render', ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>engine</Text>
+  })
+  on('turn.start', (_, e) => ({ turnId: e.turnId }))
+}
+
+for (const [value, saved] of [['hour', true], ['tomorrow', true], ['session', false]] as const) {
+  test(`snooze ${value}: hides the band${saved ? ' and saves waitSnoozedUntil' : ', saves nothing'}`, async ($, on) => {
+    const log = { sets: [] as string[][], dues: [] as string[], config: {} as unknown }
+    snoozable(on, log)
+    await $.turn.start({ text: 'hi', turnId: 't1' })
+    const ui = await $.ui.mount(band('terminal'))
+    await ui.select({ key: 'snooze', value })
+    expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
+    await ui.unmount()
+    expect(log.sets.map(s => s[0])).toEqual(saved ? ['waitSnoozedUntil'] : [])
+    if (saved) {
+      expect(Date.parse(log.sets[0]![1]!)).toBeGreaterThan(Date.now())
+      return
+    }
+    // A session snooze needs no config: the next turn fetches no card.
+    log.dues.length = 0
+    await $.turn.start({ text: 'again', turnId: 't2' })
+    expect(log.dues).toEqual([])
+  })
+}
+
+test('snooze on the back view hides the band too', async ($, on) => {
+  snoozable(on, { sets: [], dues: [], config: {} })
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const ui = await $.ui.mount(band('terminal'))
+  await revealed(ui)
+  await ui.select({ key: 'snooze', value: 'session' })
+  expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
+  await ui.unmount()
+})
+
+test('a snooze still ahead fetches no card', async ($, on) => {
+  const log = { sets: [], dues: [], config: { waitSnoozedUntil: new Date(Date.now() + 36e5).toISOString() } }
+  snoozable(on, log)
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  expect(log.dues).toEqual([])
+})
+
+test('an expired snooze shows the band again', async ($, on) => {
+  const log = { sets: [], dues: [], config: { waitSnoozedUntil: new Date(Date.now() - 1000).toISOString() } }
+  snoozable(on, log)
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const ui = await $.ui.mount(band('terminal'))
+  expect(await ui.find({ type: 'Text', text: /front/ })).toBeDefined()
+  await ui.unmount()
+})

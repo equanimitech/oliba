@@ -1,6 +1,8 @@
 // The wait band: one due card above the prompt while Claude works. Type an
 // answer, reveal the back, rate it. No count, no streak; Skip leaves the card
-// unscored. Needs a Claude Code build that loads hooks modules (mods).
+// unscored. Snooze hides the whole band (an hour, this session, or until 04:00;
+// the first and last in the waitSnoozedUntil config key, which "wake the band"
+// in /oliba:config clears). Needs a Claude Code build that loads hooks modules (mods).
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
@@ -29,6 +31,24 @@ const firstDue = async ($: EngineInterface, tags: (string | undefined)[], skippe
   }
   return undefined
 }
+
+// The next 04:00 local time: today's when it is before 04:00.
+export const nextFour = (now: Date) => {
+  const d = new Date(now)
+  d.setHours(4, 0, 0, 0)
+  if (d <= now) d.setDate(d.getDate() + 1)
+  return d
+}
+
+const SNOOZES = [
+  { value: 'hour', label: '1 hour' },
+  { value: 'session', label: 'this session' },
+  { value: 'tomorrow', label: 'until tomorrow' },
+]
+
+// Snoozed for the session, or until a time still ahead in the config.
+const isSnoozed = async ($: EngineInterface, session: boolean) =>
+  session || Date.parse((await cli($, ['config-get']))?.waitSnoozedUntil ?? '') > Date.now()
 
 // Every topic once, from `start` round to the one before it.
 export const topicOrder = (topics: string[], start: number) => [...topics.slice(start), ...topics.slice(0, start)]
@@ -86,6 +106,7 @@ export const register: Register = (on, options) => {
   // Session memory: cards skipped (not offered again), cards being rated.
   const skipped = new Set<string>()
   const rateInFlight = new Set<string>()
+  let sessionSnoozed = false
 
   // One card per main-loop turn, fetched only when none is in progress. The
   // turn starts first (next(e) resolves at the start, not the end), so the
@@ -100,7 +121,7 @@ export const register: Register = (on, options) => {
         if (Array.isArray(due) && !due.some(c => c.id === held.id)) await update($, card, cur => cur?.id === held.id ? null : cur)
       }
     }
-    if (e.agentId === undefined && (await read($, card)) === null) {
+    if (e.agentId === undefined && (await read($, card)) === null && !(await isSnoozed($, sessionSnoozed))) {
       // No topics: whatever is due first. Topics: a random one, then the rest in order.
       const start = Math.floor(Math.random() * topics.length)
       const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined], skipped)
@@ -120,6 +141,10 @@ export const register: Register = (on, options) => {
     const { Box, Button, Text } = els
     // The mobile app draws no Input: reveal only there.
     const Input = 'Input' in els ? els.Input : undefined
+    // Nor a Select: there, Snooze is one button, an hour.
+    const Snooze = 'Select' in els
+      ? <els.Select key="snooze" label="Snooze" options={SNOOZES} onSelect={v => void snooze(v)} />
+      : <Button key="snooze" label="Snooze" onPress={() => snooze('hour')} />
     const width = e.props.bodyColumns
 
     // Every write checks the card is still this one: a press can land after
@@ -147,6 +172,14 @@ export const register: Register = (on, options) => {
     }
     const skip = async () => {
       if (!rateInFlight.has(c.id) && await claim()) skipped.add(c.id)
+    }
+    // Takes the card off and hides the band: "this session" is kept in memory
+    // only, the others as a time in the config.
+    const snooze = async (choice: string) => {
+      if (!rateInFlight.has(c.id)) await claim()
+      if (choice === 'session') return void (sessionSnoozed = true)
+      const until = choice === 'hour' ? new Date(Date.now() + 36e5) : nextFour(new Date())
+      await cli($, ['config-set', 'waitSnoozedUntil', until.toISOString()])
     }
     // The card stays in the atom until the rate CLI has written, so a turn
     // starting meanwhile cannot fetch it again.
@@ -178,6 +211,7 @@ export const register: Register = (on, options) => {
             />}
             <Button key="reveal" label="Reveal" variant="primary" onPress={() => reveal()} />
             <Button key="skip" label="Skip" onPress={skip} />
+            {Snooze}
           </Box>
         </Box>
       )
@@ -201,6 +235,7 @@ export const register: Register = (on, options) => {
           {grade('shaky', 'Shaky', '2', 'hard')}
           {grade('gotit', 'Got it', '3', 'good')}
           <Button key="skip" label="Skip" onPress={skip} />
+          {Snooze}
         </Box>
       </Box>
     )
