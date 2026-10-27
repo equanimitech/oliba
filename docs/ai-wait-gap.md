@@ -61,7 +61,7 @@ Our research surveyed the tools that attempt to fill idle moments with learning:
 | Tool | Approach | Gap |
 |---|---|---|
 | **Unwait** | macOS overlay during AI waits, fixed SR ladder, three content types | Closed-source, no card extraction, no Ultralearning, paid |
-| **agent-tutor-skill** | Teaching loop with FSRS, desirable difficulty, source-aware | Lives inside work sessions, not a separate learning surface |
+| **agent-tutor-skill** | Teaching loop with FSRS, desirable difficulty, source-aware | Teaches what the work session touches; no topic map, no anti-guilt design |
 | **learn-faster-kit** | FASTER framework coaching via system prompts | Agent-adjacent (Python scripts), not agent-native |
 | **Learning Opportunities** (Dr. Cat Hicks) | Post-commit exercises grounded in learning science | One-shot, not SR-scheduled |
 | **Anthropic's learning-output-style** | SessionStart hook forcing code production at decision points | Not SR; directness only |
@@ -90,7 +90,7 @@ oliba is an open-source Claude Code plugin that fills the AI wait gap with agent
 ### What it takes from Unwait
 
 - Anti-guilt design: no debt counter, no streak, no daily contract
-- One card at a time in the status line during processing (never a count)
+- One card at a time during processing, never a count: the wait band above the prompt, or the status line where mods are unavailable
 - Skipped cards reappear unscored
 - The tool is a place you want to be, not a wall you hit
 
@@ -104,8 +104,10 @@ oliba is an open-source Claude Code plugin that fills the AI wait gap with agent
 
 ### What it adds that neither has
 
-- **Agent-extracted card funnel.** Cards born from real work conversations, triaged deliberately.
-- **Topic-based card generation.** `/oliba:syllabus Code de la route` maps the topic with starter cards; `/oliba:teach` wins one skill per sitting and turns it into cards.
+- **Retrieval inside the gap.** The wait band runs a full repetition while the agent works: type the answer, reveal, rate. When you typed an answer, a small model suggests the grade; you confirm or overrule it.
+- **Socratic teaching.** `/oliba:teach` wins one skill per sitting by asking before telling, writes it up as a single-file HTML lesson with think-first prompts and quizzes, and turns quiz items and corrected misconceptions into cards.
+- **Topic maps.** `/oliba:syllabus Code de la route` maps the topic into ordered modules with starter cards.
+- **Drilling weak points.** `/oliba:study grill me on <topic>` climbs explain-back, why, what-if and a fresh case over your recorded misconceptions.
 - **Open source, local-first, zero-config.** `claude plugin install oliba@oliba`. Data in `~/.oliba/` as plain JSON. No account, no server, no macOS-only limitation.
 - **FSRS-5 algorithm.** State of the art (trained on 700M reviews, 20-30% fewer reviews than SM-2), not a fixed ladder. Better scheduling without the complexity tax on the user.
 - **Equanimitech alignment.** Sovereignty (you own your data, you choose what to learn). Awareness (cues surface without demanding). Equanimity (no guilt, no pressure, no score).
@@ -119,7 +121,9 @@ The plugin does not intercept this impulse (new-tab overrides cause fatigue). It
 1. **During the gap:** the wait band offers one due card above the prompt: type the answer, reveal, rate it (a suggested grade when you typed one). Skip is free. Where mods are unavailable, the status line shows the card's question instead: a retrieval cue, not a demand.
 2. **When you choose to learn:** open a dedicated Claude Code session. `/oliba:study` for retrieval practice. `/oliba:syllabus` or `/oliba:teach` to map and learn a new topic. Stop whenever you want.
 
-The gap plants the seed. The dedicated session harvests it. Neither surface guilts you.
+The gap keeps cards alive with one repetition at a time. The dedicated session maps, teaches and drills. Neither surface guilts you.
+
+Not built yet: cards extracted from work sessions themselves (key finding 1 above). oliba does not fill that gap today.
 
 ## Attribution
 
