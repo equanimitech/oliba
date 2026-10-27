@@ -18,12 +18,14 @@ const cli = async ($: EngineInterface, args: string[]) => {
   }
 }
 
-// The first card due under the first tag that has one; undefined, no tag.
-const firstDue = async ($: EngineInterface, tags: (string | undefined)[]) => {
+// The first card due under the first tag that has one, skipped ones left out;
+// undefined, no tag.
+const firstDue = async ($: EngineInterface, tags: (string | undefined)[], skipped: Set<string>) => {
   for (const tag of tags) {
     // An ambiguous tag answers { ambiguous, projects }: nothing due for it.
-    const result = await cli($, ['due', '--limit', '1', '--hide-back'].concat(tag ? ['--tag', tag] : []))
-    if (Array.isArray(result) && result[0]) return result[0] as { id: string; front: string }
+    const result = await cli($, ['due', '--limit', String(skipped.size + 1), '--hide-back'].concat(tag ? ['--tag', tag] : []))
+    const pick = Array.isArray(result) ? result.find(c => !skipped.has(c.id)) : undefined
+    if (pick) return pick as { id: string; front: string }
   }
   return undefined
 }
@@ -78,15 +80,27 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
+  // Session memory: cards skipped (not offered again), cards being rated.
+  const skipped = new Set<string>()
+  const rating = new Set<string>()
+
   // One card per main-loop turn, fetched only when none is in progress. The
   // turn starts first (next(e) resolves at the start, not the end), so the
-  // fetch never delays it.
+  // fetch never delays it. An untouched held card is dropped once another
+  // session has rated it.
   on('turn.start', async ($, e, next) => {
     const result = await next(e)
+    if (e.agentId === undefined) {
+      const held = await read($, card)
+      if (held && !held.typed.trim() && held.back === undefined && !rating.has(held.id)) {
+        const due = await cli($, ['due', '--hide-back'])
+        if (Array.isArray(due) && !due.some(c => c.id === held.id)) await update($, card, cur => cur?.id === held.id ? null : cur)
+      }
+    }
     if (e.agentId === undefined && (await read($, card)) === null) {
       // No topics: whatever is due first. Topics: a random one, then the rest in order.
       const start = Math.floor(Math.random() * topics.length)
-      const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined])
+      const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined], skipped)
       if (due) await update($, card, () => ({ id: due.id, front: due.front, typed: '' }))
     }
     return result
@@ -128,13 +142,19 @@ export const register: Register = (on, options) => {
       const graded = await suggest($, c.front, shown.back, answer)
       if (graded) await update($, card, cur => isThis(cur) && cur?.back !== undefined ? { ...cur, ...graded } : cur)
     }
-    const skip = () => claim()
-    const rate = async (rating: Rating) => {
-      const taken = await claim()
-      if (!taken) return
-      if (!(await cli($, ['rate', c.id, rating]))) {
-        await update($, card, cur => cur ?? taken)
-        return $.ui.toast('oliba: not saved, try again')
+    const skip = async () => {
+      if (!rating.has(c.id) && await claim()) skipped.add(c.id)
+    }
+    // The card stays in the atom until the rate CLI has written, so a turn
+    // starting meanwhile cannot fetch it again.
+    const rate = async (grade: Rating) => {
+      if (rating.has(c.id)) return
+      rating.add(c.id)
+      try {
+        if (await cli($, ['rate', c.id, grade])) await claim()
+        else $.ui.toast('oliba: not saved, try again')
+      } finally {
+        rating.delete(c.id)
       }
     }
 
