@@ -60,7 +60,7 @@ No counter, no streak, no debt. The cue is a gift, not a demand.
 
 ## Wait band
 
-While Claude works on your prompt, one due card can sit above the prompt. Type your answer, reveal the back, then rate yourself: `1` again, `2` hard, `3` good. Press ctrl+x tab (or click the band) to reach it, Esc to go back to the prompt. Skip is free: the card stays as it was. One card per turn, and the band goes quiet once you rate or skip. If nothing is due, you never see it.
+While Claude works on your prompt, one due card can sit above the prompt. Type your answer, reveal the back, then rate yourself: `1` missed, `2` shaky, `3` got it. Press ctrl+x tab (or click the band) to reach it, Esc to go back to the prompt. Skip is free: the card stays as it was. One card per turn, and the band goes quiet once you rate or skip. If nothing is due, you never see it.
 
 To draw cards only from some topics, set `waitTopics` in `/config` to tags or projects, comma-separated (`italiano, code-de-la-route`). Each turn picks one at random and falls back to the others. Empty means whatever is due first.
 

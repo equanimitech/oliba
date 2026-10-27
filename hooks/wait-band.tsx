@@ -61,7 +61,7 @@ export const register: Register = (on, options) => {
     if (c.back === undefined) {
       return (
         <Box flexDirection="column" width={width} paddingX={2} paddingY={1}>
-          <Text wrap="truncate-end">🦉 {c.front}</Text>
+          <Text>🦉 {c.front}</Text>
           <Box gap={2}>
             {Input && <Input
               key="answer"
@@ -77,15 +77,17 @@ export const register: Register = (on, options) => {
       )
     }
 
+    // Backs hold markdown; the band scrolls past maxRows, so nothing is cut here.
+    const Markdown = 'Markdown' in els ? els.Markdown : undefined
     return (
       <Box flexDirection="column" width={width} paddingX={2} paddingY={1}>
-        <Text wrap="truncate-end">🦉 {c.front}</Text>
-        <Text wrap="truncate-end" dimColor>you: {c.typed || '(blank)'}</Text>
-        <Text wrap="truncate-end">back: {c.back}</Text>
+        <Text>🦉 {c.front}</Text>
+        {c.typed && <Text dimColor>you: {c.typed}</Text>}
+        {Markdown ? <Markdown key="back" text={c.back} /> : <Text>{c.back}</Text>}
         <Box gap={2}>
-          <Button key="again" label="Again" hotkey="1" onPress={() => rate('again')} />
-          <Button key="hard" label="Hard" hotkey="2" onPress={() => rate('hard')} />
-          <Button key="good" label="Good" hotkey="3" variant="primary" onPress={() => rate('good')} />
+          <Button key="missed" label="Missed" hotkey="1" onPress={() => rate('again')} />
+          <Button key="shaky" label="Shaky" hotkey="2" onPress={() => rate('hard')} />
+          <Button key="gotit" label="Got it" hotkey="3" variant="primary" onPress={() => rate('good')} />
         </Box>
       </Box>
     )

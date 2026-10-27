@@ -21,7 +21,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     const argvs: string[][] = []
     const answers: Record<string, unknown> = {
       due: [{ id: 'c1', front: 'What owns a Rust value?' }],
-      reveal: { id: 'c1', back: 'exactly one owner' },
+      reveal: { id: 'c1', back: 'exactly **one** owner' },
       rate: { id: 'c1' },
       'current-cue': { id: 'c1' },
       'clear-cue': {},
@@ -39,9 +39,10 @@ for (const surface of ['terminal', 'desktop'] as const) {
 
     await ui.input({ key: 'answer', text: 'one owner' })
     expect(await ui.find({ type: 'Text', text: /you: one owner/ })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: /back: exactly one owner/ })).toBeDefined()
+    expect(await ui.find({ type: 'Markdown', key: 'back' })).toBeDefined()
+    expect((await ui.find({ key: 'gotit' }))?.text).toBe('Got it')
 
-    await ui.press({ key: 'good' })
+    await ui.press({ key: 'gotit' })
     expect(argvs[0]?.[0]).toBe('node')
     expect(argvs[0]?.[1]).toMatch(/\/lib\/cli\.mjs$/)
     expect(argvs.map(a => a.slice(2).join(' '))).toEqual([
@@ -65,6 +66,22 @@ test('waitTopics: tries each topic, draws nothing when none is due', { options: 
   const ui = await $.ui.mount(band('terminal'))
   expect([...tags].sort()).toEqual(['code-de-la-route', 'italiano'])
   expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
+  await ui.unmount()
+})
+
+test('a blank answer hides the you: line', async ($, on) => {
+  const answers: Record<string, unknown> = {
+    due: [{ id: 'c1', front: 'front' }],
+    reveal: { id: 'c1', back: 'back' },
+  }
+  on('process.run', (_, e) => ok(answers[e.argv[2] ?? '']))
+  on('turn.start', (_, e) => ({ turnId: e.turnId }))
+
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const ui = await $.ui.mount(band('terminal'))
+  await ui.press({ key: 'reveal' })
+  expect(await ui.find({ key: 'missed' })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /you:/ })).toBeUndefined()
   await ui.unmount()
 })
 
