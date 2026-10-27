@@ -169,7 +169,7 @@ Use the `artifact-design` skill before building it.
 **Structure:**
 
 ```html
-<title>Syllabus: {topic}</title>
+<title>Map: {topic}</title>
 
 <pre class="mermaid">
   graph TD
