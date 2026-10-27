@@ -2,13 +2,14 @@
 tag: pitch
 appetite: medium
 status: draft
+repo: public (decided 2026-10-27)
 source: usage audit in equanimitech/.claude/attently/oliba-command-usage.md; Rafa's decisions 2026-10-27
 slice_id: B
 ---
 
-# Pitch: song leaves oliba (bemtivi)
+# Pitch: song leaves oliba (bemtevi)
 
-**Bet:** Move `/oliba:song`, the song pages and the player into bemtivi, a small plugin of its own, so oliba is only spaced repetition.
+**Bet:** Move `/oliba:song`, the song pages and the player into bemtevi, a small plugin of its own, so oliba is only spaced repetition.
 
 **Why it matters:** Song is a practice player, not spaced repetition. Its 30 songs were filed in a three-week burst, yet it threads singing through oliba's projects, pages and CLI.
 
@@ -25,7 +26,7 @@ slice_id: B
 
 ## Elements
 
-- **New repo** `equanimitech/bemtivi` (bem-te-vi, a Brazilian songbird beside oliba's barn owl): `skills/song`, `lib/lyrics.mjs`, `lib/inbox.mjs`, and the song parts of `lib/resources.mjs` and `lib/home.mjs`, with its own data folder and marketplace entry.
+- **New repo** `equanimitech/bemtevi` (bem-te-vi, a Brazilian songbird beside oliba's barn owl): `skills/song`, `lib/lyrics.mjs`, `lib/inbox.mjs`, and the song parts of `lib/resources.mjs` and `lib/home.mjs`, with its own data folder and marketplace entry.
 - **One-shot data move.** On first run, copy `~/.oliba/songs/<topic>/` and the song entries from `projects.json` into the new folder. Leave the originals until the owner has opened every song once.
 - **oliba cleanup.** Remove the `song-*`, `songs`, `inbox` commands (`lib/cli.mjs:1369`), the repertoire on the front door (`lib/home.mjs:73`) and `migrateSongs` (`lib/store.mjs:11`).
 
