@@ -1,6 +1,6 @@
 ---
 name: config
-description: Configure oliba - which topics the wait band draws from, and archiving or tagging topics. Use when the user says "oliba config", "only show me Italian cards", "which cards does the band show", "archive <topic>", "pause this project", "bring back <topic>", "tag <topic> as work".
+description: Configure oliba - which topics the wait band draws from, and archiving or tagging topics. Use when the user says "oliba config", "only show me Italian cards", "which cards does the band show", "archive <topic>", "pause this project", "bring back <topic>", "tag <topic> as work", "wake the band", "unsnooze".
 ---
 
 # Configure oliba
@@ -8,6 +8,14 @@ description: Configure oliba - which topics the wait band draws from, and archiv
 ## Wait band topics
 
 The wait band's topics are the `waitTopics` option, a row in Claude Code's own `/config` menu (`oliba.waitTopics`): comma-separated tags or projects, empty for whatever is due first. Tell the user in one line to set it there; it is Claude Code's setting, not a file to edit.
+
+## Wake the band
+
+Snooze in the band saves `waitSnoozedUntil` in the config. To wake it early, clear it; a snooze for "this session" is not saved and ends with the session.
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" config-unset waitSnoozedUntil
+```
 
 ## Archive and tag projects
 

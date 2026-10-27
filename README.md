@@ -43,7 +43,7 @@ Practice pages for songs moved to their own plugin, [bemtevi](https://github.com
 
 ## Wait band
 
-While Claude works on your prompt, one due card can sit above the prompt. Type your answer, reveal the back, then rate yourself: `1` missed, `2` shaky, `3` got it. When you typed something, Claude names a grade with a short reason, but never pre-selects it; you pick with a number. Press ctrl+x tab (or click the band) to reach it, Esc to go back to the prompt. Skip is free: the card stays as it was. One card per turn; the band leaves when the turn ends (unless you are mid-card) and returns on the next turn, and goes quiet once you rate or skip. If nothing is due, you never see it.
+While Claude works on your prompt, one due card can sit above the prompt. Type your answer, reveal the back, then rate yourself: `1` missed, `2` shaky, `3` got it. When you typed something, Claude names a grade with a short reason, but never pre-selects it; you pick with a number. Press ctrl+x tab (or click the band) to reach it, Esc to go back to the prompt. Skip passes the card for the rest of the session, unscored. Snooze hides the whole band for an hour, the session, or until 04:00 tomorrow; say "wake the band" to end it early. One card per turn; the band leaves when the turn ends (unless you are mid-card) and returns on the next turn, and goes quiet once you rate or skip. If nothing is due, you never see it.
 
 To draw cards only from some topics, set `waitTopics` in `/config` to tags or projects, comma-separated (`italiano, code-de-la-route`). Each turn picks one at random and falls back to the others. Empty means whatever is due first.
 
