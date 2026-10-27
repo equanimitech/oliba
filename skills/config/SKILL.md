@@ -54,7 +54,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" clear-cue
 
 ## Archive and tag projects
 
-Archiving rests a project: its cards leave `/study`, the cue and grilling, and nothing is deleted. Unarchiving brings them back as they were; don't mention the time away. Tags group projects on `~/.oliba/index.html` and work as `/study <tag>`.
+Archiving rests a project: its cards leave `/review`, the cue and grilling, and nothing is deleted. Unarchiving brings them back as they were; don't mention the time away. Tags group projects on `~/.oliba/index.html` and work as `/review <tag>`.
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" project-archive <projectId>               # --unarchive to bring it back

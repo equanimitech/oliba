@@ -36,7 +36,7 @@ Reply with the path in one line. Nothing else.
 
 ## Which project
 
-Songs attach to a project. If `songs` lists any, use that `projectId`. Otherwise run `project-list` and take the one music project (for this learner: "Teoria musical para cantores", `2a2619ef-b358-4f6b-a4ff-df4f14071c77`). Several candidates: ask once with `AskUserQuestion`. None: create one the way `/teach` does, with `project-create`.
+Songs attach to a project. If `songs` lists any, use that `projectId`. Otherwise run `project-list` and take the one music project (for this learner: "Teoria musical para cantores", `2a2619ef-b358-4f6b-a4ff-df4f14071c77`). Several candidates: ask once with `AskUserQuestion`. None: create one the way `/learn` does, with `project-create`.
 
 ## Add from Downloads
 
@@ -48,9 +48,9 @@ The teacher sends audio files over WhatsApp. The learner downloads them in Whats
    node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" inbox
    ```
 
-   It prints `{ dir, groups: [{ title, kind, files: [{ path, name, title, role, duration }] }] }`: audio from the last 14 days (`--days N` for more) that no song or class has claimed yet. Files whose names match loosely and whose lengths match are one group; `role` is `guia` ("com voz", "guia", "with vocals"), `base` ("sem voz", "instrumental", "playback", "karaoke", "no vocals") or `null`.
+   It prints `{ dir, groups: [{ title, kind, files: [{ path, name, title, role, duration }] }] }`: audio from the last 14 days (`--days N` for more) that no song has claimed yet. Files whose names match loosely and whose lengths match are one group; `role` is `guia` ("com voz", "guia", "with vocals"), `base` ("sem voz", "instrumental", "playback", "karaoke", "no vocals") or `null`.
 
-   A group with `kind: "class"` is a recording of 10 minutes or more: never propose it as a song. Say in one line, in `language`, "<name> parece uma aula: `/class`" and leave it.
+   A group with `kind: "class"` is a recording of 10 minutes or more: never propose it as a song. Say in one line, in `language`, that <name> looks like a class recording, and leave it.
 
    No `kind: "song"` groups: "Nothing new in Downloads. Download the teacher's audio in WhatsApp Web, then `/song add` again." and stop.
 
