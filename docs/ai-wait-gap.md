@@ -90,7 +90,7 @@ oliba is an open-source Claude Code plugin that fills the AI wait gap with agent
 ### What it takes from Unwait
 
 - Anti-guilt design: no debt counter, no streak, no daily contract
-- One card at a time during processing, never a count: the wait band above the prompt, or the status line where mods are unavailable
+- One card at a time during processing, never a count: the wait band above the prompt
 - Skipped cards reappear unscored
 - The tool is a place you want to be, not a wall you hit
 
@@ -118,7 +118,7 @@ The gap is a behavioral moment. The user's attention is free. The default is to 
 
 The plugin does not intercept this impulse (new-tab overrides cause fatigue). It does not demand a dedicated time slot (that's Anki's failed contract). Instead:
 
-1. **During the gap:** the wait band offers one due card above the prompt: type the answer, reveal, rate it (a suggested grade when you typed one). Skip is free. Where mods are unavailable, the status line shows the card's question instead: a retrieval cue, not a demand.
+1. **During the gap:** the wait band offers one due card above the prompt: type the answer, reveal, rate it (a suggested grade when you typed one). Skip is free.
 2. **When you choose to learn:** open a dedicated Claude Code session. `/oliba:review` for retrieval practice. `/oliba:map` or `/oliba:learn` to map and learn a new topic. Stop whenever you want.
 
 The gap keeps cards alive with one repetition at a time. The dedicated session maps, teaches and drills. Neither surface guilts you.

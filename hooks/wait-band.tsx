@@ -61,6 +61,22 @@ const suggest = async ($: EngineInterface, front: string, back: string, typed: s
 export const register: Register = (on, options) => {
   const topics = String(options.waitTopics ?? '').split(',').map(t => t.trim()).filter(Boolean)
 
+  // 0.19 retired the status-line cue: its topics (oliba config cueTags) become
+  // waitTopics, once, unless waitTopics is already set.
+  on('session.start', async ($, e, next) => {
+    if (!topics.length) {
+      const config = await cli($, ['config-get'])
+      const tags: string[] = [config?.cueTags ?? []].flat().filter(Boolean)
+      if (tags.length && !config.cueTagsMoved) {
+        const value = tags.join(', ')
+        const { deny } = await $.config.set({ key: 'oliba.waitTopics', value })
+        if (deny) $.ui.toast(`oliba: set waitTopics to "${value}" in /config`)
+        await cli($, ['config-set', 'cueTagsMoved', 'true'])
+      }
+    }
+    return next(e)
+  })
+
   // One card per main-loop turn, fetched only when none is in progress.
   on('turn.start', async ($, e, next) => {
     if (e.agentId === undefined && (await read($, card)) === null) {
@@ -109,7 +125,7 @@ export const register: Register = (on, options) => {
     const rate = async (rating: Rating) => {
       const taken = await claim()
       if (!taken) return
-      if (!(await cli($, ['rate', c.id, rating, '--clear-cue']))) {
+      if (!(await cli($, ['rate', c.id, rating]))) {
         await update($, card, cur => cur ?? taken)
         return $.ui.toast('oliba: not saved, try again')
       }
