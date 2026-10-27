@@ -18,14 +18,14 @@ Local-first. Anti-guilt.
 
 1. In a terminal: `claude plugin marketplace add https://github.com/equanimitech/oliba.git && claude plugin install oliba@oliba`
 2. Or inside Claude Code: `/plugin marketplace add https://github.com/equanimitech/oliba.git`, then `/plugin install oliba@oliba`
-3. Restart Claude Code and say yes when it offers the status line.
+3. Restart Claude Code.
 
 ## How it works
 
 1. **Map.** Run `/oliba:map <topic>`: the agent maps the territory into ordered modules with prerequisites, and publishes the map as a study guide.
 2. **Learn.** Run `/oliba:learn <topic>` (no map needed). The first time, it asks why you're learning it, which language to teach you in, and which language the field's own terms stay in. Each sitting wins one skill: the agent asks what you think before telling you anything, then probes your answers until you reach the idea yourself. It writes the sitting up as one self-contained HTML lesson with think-first prompts and instant-feedback quizzes, which opens in your browser and can be shared as a single file. Quiz items and corrected misconceptions become cards. `/oliba:learn <topic> ?` brings questions back to the terminal.
 3. **Review.** Run `/oliba:review` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules. `/oliba:review grill me on <topic>` drills your recorded misconceptions and weak cards: explain it back, then why, what-if and a fresh case.
-4. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. Answer it in place with `/oliba:review <your answer>`. One cue, never a count.
+4. **While Claude works.** The wait band offers one due card above the prompt (below). One card, never a count.
 
 ## Commands
 
@@ -34,23 +34,17 @@ Local-first. Anti-guilt.
 | `/oliba:map <topic>` | See a whole topic first: modules and prerequisites, no cards |
 | `/oliba:learn <topic>[: <node>]` | Learn something new: one skill per sitting by Socratic questions, written up as an HTML lesson |
 | `/oliba:learn <topic> ? [question]` | Socratic follow-up questions in the terminal |
-| `/oliba:review [tag \| project \| answer]` | Keep what you have: FSRS retrieval session, or score the status-line cue |
+| `/oliba:review [tag \| project]` | Keep what you have: FSRS retrieval session |
 | `/oliba:review grill me on <topic>` | Drill recorded misconceptions and weak cards |
 | `/oliba:review results [prompt]` | Rate a lesson's cards from saved quiz results by hand (normally automatic) |
 | `/oliba:song [add \| <title>]` | File the teacher's recordings; one page per song with a practice player |
-| `/oliba:config` | Settings and status line setup |
+| `/oliba:config` | Wait band topics; archive and tag topics |
 
 ## Songs
 
 For a singer with a teacher. Download the teacher's audio in WhatsApp Web (or AirDrop it) and run `/oliba:song add`: oliba finds the new files in `~/Downloads`, pairs the guide ("com voz") with the backing ("sem voz"), asks which song and key, and copies them next to the song's page in `~/.oliba/songs/<topic>/`. The page switches guide and backing at the same spot, loops a section, slows down without changing pitch, and shows the lyrics large below the player, lit line by line when their timing fits the recording. LRCLIB often holds several timings of one song: pick another from the player bar, nudge the delay, or turn following off. Tell `/oliba:song` where the chorus starts, paste a cifra, say "Flor de Lis tá guardada" or "marca Aquarela como samba": the repertoire shows the songs you're singing now first and folds the stored ones away, newest first, with no dates and no counts; tags show as quiet labels. Pages are for practice; every change happens in the conversation. A song is never a card.
 
 Lyrics come from [LRCLIB](https://lrclib.net), fetched for your own study and stored only on your machine.
-
-## Status line (optional)
-
-One due card's front shows in the status line as a retrieval cue while Claude works. If nothing is due, it stays quiet. Say yes to the first-run offer, or ask `/oliba:config` to set up the status line later. If you already have a status line, it keeps yours and appends the cue.
-
-No counter, no streak, no debt. The cue is a gift, not a demand.
 
 ## Wait band
 
@@ -59,6 +53,10 @@ While Claude works on your prompt, one due card can sit above the prompt. Type y
 To draw cards only from some topics, set `waitTopics` in `/config` to tags or projects, comma-separated (`italiano, code-de-la-route`). Each turn picks one at random and falls back to the others. Empty means whatever is due first.
 
 The band needs a Claude Code build that loads hooks modules (mods): the terminal and the desktop app's Code tab. On the mobile app it shows Reveal only, with no field to type in.
+
+No counter, no streak, no debt. The card is a gift, not a demand.
+
+Upgrading from 0.18 or earlier: oliba no longer draws a status line. On the first session after the upgrade it gives you back the status line you had before (with a backup of `settings.json` beside it), and the topics you had chosen for the old cue become `waitTopics`.
 
 ## Theory
 
@@ -70,7 +68,7 @@ All data lives in `~/.oliba/` as plain JSON. No account, no server, no sync. You
 
 Lessons are files too: `~/.oliba/lessons/<topic>/` holds each lesson, an `index.html` linking them, and the topic's `glossary.html`; `~/.oliba/glossary.html` gathers every topic's terms. `~/.oliba/index.html` is the front door: every topic, its mission, and links to its lessons and study guide (`cli.mjs index --open` rebuilds and opens it). Each lesson carries its own styles and script, so it works offline and can be sent on its own. The page stores nothing and sends nothing. Click **Save my results** at the end of a lesson: it downloads your first attempts as a small JSON file, and oliba picks it up from `~/Downloads` on your next prompt, rates the lesson's cards from it (a miss comes back sooner), and deletes the file. That's it. If your browser won't download, the confirmation offers a `/review` prompt to paste instead.
 
-The front door also groups topics by tag and folds archived ones away. To archive a topic or retag it, ask in the conversation ("archive Chess", "tag Teoria musical as voz"). An archived topic's cards rest, out of study and the cue, until you bring it back; nothing is deleted. `/oliba:review <tag>` studies every topic with that tag. After an upgrade oliba re-renders every page once, at session start; `cli.mjs index --all` does it on demand.
+The front door also groups topics by tag and folds archived ones away. To archive a topic or retag it, ask in the conversation ("archive Chess", "tag Teoria musical as voz"). An archived topic's cards rest, out of review and the wait band, until you bring it back; nothing is deleted. `/oliba:review <tag>` studies every topic with that tag. After an upgrade oliba re-renders every page once, at session start; `cli.mjs index --all` does it on demand.
 
 Override the data directory with `OLIBA_DIR` for testing or custom locations.
 

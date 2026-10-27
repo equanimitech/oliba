@@ -46,7 +46,7 @@ Break down a complex skill into parts, practice them in isolation. AI can genera
 
 Memory is strengthened more by recall than by review. Practice remembering, not just looking.
 
-**Plugin feature:** The core of `/review`. Cards demand typed answers (production), not multiple choice (recognition). The status-line cue during processing is a retrieval prompt.
+**Plugin feature:** The core of `/review`. Cards demand typed answers (production), not multiple choice (recognition). The wait band during processing asks for a typed answer before it shows anything.
 
 ### 6. Feedback: Don't Dodge the Punches
 
@@ -63,7 +63,7 @@ Sparse or incomplete feedback slows learning. AI can enhance feedback in symboli
 
 Spacing and mnemonics combat forgetting. An AI agent can manage the logistical nightmare of tracking what you've learned and ensuring regular re-exposure.
 
-**Plugin feature:** FSRS algorithm schedules reviews at optimal intervals. The status-line cue resurfaces knowledge ambient during work sessions.
+**Plugin feature:** FSRS algorithm schedules reviews at optimal intervals. The wait band resurfaces one due card while the agent works.
 
 From Young's 2026 reflection:
 

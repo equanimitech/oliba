@@ -65,10 +65,6 @@ One source you teach from and the learner can go to next: the statute, the offic
 
 Everything you say is in `language`, with domain terms kept as in **Language** below.
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-lock
-```
-
 ### 1. Elicit before telling
 
 Name the skill in one line, then ask 2 to 4 questions **before any explanation**, one at a time, each waiting for a typed answer:
@@ -139,10 +135,6 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" record <projectId> --kind misconception
 ```
 
 ### 3. Close the sitting
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-unlock
-```
 
 If the learner stops before the win, that's fine: still write the lesson from what the dialogue reached, and don't remark on it.
 
@@ -242,15 +234,11 @@ One line, in `language`: the lesson's path, that its questions are now cards, an
 
 Open Q&A about the latest lesson (or the node named), still Socratic, in `language`, with terms kept as above.
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-lock
-```
-
 - If the learner can reach the answer themselves, answer their question with a question that gets them there ("What would happen to the notice if the relationship were two years old?"). If they can't, answer briefly, then ask one question that uses the answer.
 - Probe with why, what-if and counter-examples as in the loop. Wait for typed answers; never `AskUserQuestion`.
 - Records and glossary entries as in the sitting: every corrected belief is a `record --kind misconception`; correct use of a term is a `glossary-add`.
 
-End with `study-unlock` and one line: what's now a card, or "`/learn <topic>` for the next lesson." No summary, no score. No new lesson file in this mode.
+End with one line: what's now a card, or "`/learn <topic>` for the next lesson." No summary, no score. No new lesson file in this mode.
 
 ## Anti-guilt rules (hard constraints)
 

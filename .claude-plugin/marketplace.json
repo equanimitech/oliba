@@ -9,7 +9,7 @@
     {
       "name": "oliba",
       "source": "./",
-      "description": "Agent-native spaced repetition for Claude Code. Map a topic, learn it one piece at a time, keep it with FSRS reviews and a one-card status-line cue."
+      "description": "Agent-native spaced repetition for Claude Code. Map a topic, learn it one piece at a time, keep it with FSRS reviews and a one-card wait band while Claude works."
     }
   ]
 }

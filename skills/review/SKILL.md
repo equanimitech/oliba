@@ -1,6 +1,6 @@
 ---
 name: review
-description: Keep what you already have - a spaced-repetition session over due oliba cards, or score the status-line cue. Use when the user runs /review, says "let's review", "let's study", "quiz me", "answer the cue", types an answer to the status-line card, says "grill me on X", or wants to practice what they've been learning. Accepts a tag or project to filter by (e.g. /review rust, /review code de la route) or an answer to the cue (e.g. /review single ownership).
+description: Keep what you already have - a spaced-repetition session over due oliba cards. Use when the user runs /review, says "let's review", "let's study", "quiz me", says "grill me on X", or wants to practice what they've been learning. Accepts a tag or project to filter by (e.g. /review rust, /review code de la route).
 ---
 
 # Review session
@@ -23,27 +23,10 @@ It checks in a fixed order and prints one `mode`:
 |---|---|---|
 | `grill` | "grill me on …" | Go to **Grill**. |
 | `filter` | A known tag, project tag or project topic | Run the session below with `--tag "<tag>"`. |
-| `cue` | A cue is showing and the text is the user's answer to it | Go to **Answer the cue**. |
-| `ask` | The text is a tag *and* a cue is showing | Ask one `AskUserQuestion`: "Answer the cue" or "Study <tag>". Then follow that row. |
 | `results` | Lesson results from the page's save button | Go to **Lesson results**. |
 | `plain` | Nothing to filter | Run the session below over every due card. If `unmatched` is set, say in one line that nothing matched it. |
 
 `due --tag` first matches card tags; if no card carries that tag, it matches project tags (the tags set on the index page or with `project-set --tags`, case- and accent-insensitive) and returns the cards of every project with that tag; then project topics (case- and accent-insensitive substring) and returns that project's cards. Archived projects' cards never come due; they return as they were when the project is unarchived, and you don't mention the time away. If several projects match, it returns `{ "ambiguous": true, "projects": [{ "id", "topic" }] }` instead of cards: ask which one with `AskUserQuestion` (one option per topic), then use `--tag project:<id>` for the rest of the session.
-
-## Answer the cue
-
-One exchange, no ceremony. The status-line card is `cardId`; the user's answer is `answer`.
-
-1. Fetch the card: `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" current-cue`
-2. Compare `answer` to the card's `back` and pick a rating (`again`, `hard`, `good`, `easy`, as in the loop below).
-3. Rate it and clear the cue so the status line picks a fresh card next time:
-
-   ```bash
-   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" rate <cardId> <rating>
-   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" clear-cue
-   ```
-
-4. Respond in **one line**: what they got right or missed, and when it comes back (from the updated `fsrs.due`). Example: "Got ownership but missed reference validity. Back in 3 days." Do not show the front again, do not start a session, and do not mention how many cards are due. Back to work.
 
 ## Lesson results
 
@@ -72,9 +55,7 @@ The Socratic drill: attack the weakest points until they hold. Not an FSRS sessi
 
 2. If `misconceptions` and `weakCards` are both empty: "Nothing weak to grill on **<topic>** right now." and stop.
 
-3. Lock the status line: `node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-lock`
-
-4. Take targets one at a time, open misconceptions first, then weak cards (their `front` says what the idea is). For each, climb this ladder, one question per turn, waiting for a typed answer. Never `AskUserQuestion`, never options, never show the card's back or the record's text first.
+3. Take targets one at a time, open misconceptions first, then weak cards (their `front` says what the idea is). For each, climb this ladder, one question per turn, waiting for a typed answer. Never `AskUserQuestion`, never options, never show the card's back or the record's text first.
    - **Explain back.** "Explain <idea> in your own words, as you'd put it to <someone from the mission>." (the Feynman move)
    - **Why.** Ask why each claim in their answer holds, until it rests on something they understand or they hit the gap.
    - **What if.** Change one fact of the case and ask what follows.
@@ -97,15 +78,7 @@ The Socratic drill: attack the weakest points until they hold. Not an FSRS sessi
 
 6. Speak `language` throughout; keep domain terms in `termLanguage` with their gloss, as `/learn` does.
 
-7. Stop when the targets run out or the user stops. Unlock (`study-unlock`) and close in one line, e.g. "Good grilling." No summary, no count of gaps or targets.
-
-## Start
-
-Lock the status line cue so it stays quiet during the study session:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-lock
-```
+7. Stop when the targets run out or the user stops. Close in one line, e.g. "Good grilling." No summary, no count of gaps or targets.
 
 ## Loop
 
@@ -136,11 +109,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-lock
       The command prints the updated card; its `fsrs.due` is the next review date.
    f. Mention the next review conversationally ("this one comes back in about 3 days"), then move to the next card. A card rated `again` may reappear later in this same session via a fresh `due` call; that is intended.
 4. If the user says "skip", move on without calling `rate`. The card stays due, unscored. Never comment on skips.
-5. When the batch is done or the user stops: unlock the status line cue and close warmly in one line, e.g. "Good session." NO summary counts, NO "X of Y correct", NO streaks, NO "see you tomorrow".
-
-   ```bash
-   node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" study-unlock
-   ```
+5. When the batch is done or the user stops: close warmly in one line, e.g. "Good session." NO summary counts, NO "X of Y correct", NO streaks, NO "see you tomorrow".
 
 ## Post-session: project node suggestion
 
