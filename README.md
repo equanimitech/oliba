@@ -13,7 +13,6 @@ Local-first. Anti-guilt.
 - [Claude Code](https://claude.com/claude-code).
 - [Node.js](https://nodejs.org) 18 or newer. The current LTS is best.
 - macOS or Linux. The hooks run in a POSIX shell. Windows is untested; WSL should work.
-- `/oliba:class` is macOS only: it transcribes with [Vibe](https://github.com/thewh1teagle/vibe).
 
 ## Install
 
@@ -39,7 +38,6 @@ Local-first. Anti-guilt.
 | `/oliba:review grill me on <topic>` | Drill recorded misconceptions and weak cards |
 | `/oliba:review results [prompt]` | Rate a lesson's cards from saved quiz results by hand (normally automatic) |
 | `/oliba:song [add \| <title>]` | File the teacher's recordings; one page per song with a practice player |
-| `/oliba:class [<audio>]` | Transcribe a class recording on your Mac; keep what was said as song notes, cards and records |
 | `/oliba:config` | Settings and status line setup |
 
 ## Songs
@@ -47,10 +45,6 @@ Local-first. Anti-guilt.
 For a singer with a teacher. Download the teacher's audio in WhatsApp Web (or AirDrop it) and run `/oliba:song add`: oliba finds the new files in `~/Downloads`, pairs the guide ("com voz") with the backing ("sem voz"), asks which song and key, and copies them next to the song's page in `~/.oliba/songs/<topic>/`. The page switches guide and backing at the same spot, loops a section, slows down without changing pitch, and shows the lyrics large below the player, lit line by line when their timing fits the recording. LRCLIB often holds several timings of one song: pick another from the player bar, nudge the delay, or turn following off. Tell `/oliba:song` where the chorus starts, paste a cifra, say "Flor de Lis tá guardada" or "marca Aquarela como samba": the repertoire shows the songs you're singing now first and folds the stored ones away, newest first, with no dates and no counts; tags show as quiet labels. Pages are for practice; every change happens in the conversation. A song is never a card.
 
 Lyrics come from [LRCLIB](https://lrclib.net), fetched for your own study and stored only on your machine.
-
-## Classes
-
-Record the class on your phone (with the teacher's OK), AirDrop it to the Mac and run `/oliba:class`. oliba transcribes it on the Mac with [Vibe](https://github.com/thewh1teagle/vibe)'s whisper model (`brew install --cask vibe`, then download large-v3-turbo in Vibe once); a 45-minute class takes about a minute. Claude reads the transcript beside your songs and your map and proposes, one question at a time, a note on a song, a card, or a corrected mistake, in the words said in class. Sung passages are skipped. The recording and its transcript stay in `~/.oliba/classes/`; nothing leaves your machine. The first time, it asks whether the teacher knows the class is recorded, once per topic.
 
 ## Status line (optional)
 
@@ -93,8 +87,6 @@ The way `/learn` works owes a great deal to **Matt Pocock** and his [`/teach` sk
 - **Grilling**, from his separate [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) and [`grill-me`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me) skills: relentless questioning as a way to stress-test understanding. oliba's grill mode points it at your recorded misconceptions.
 
 oliba's code, styles and wording are its own, written to fit its spaced-repetition core; the ideas above are his. Thank you, Matt.
-
-Class recordings are transcribed by [Vibe](https://github.com/thewh1teagle/vibe) by thewh1teagle (MIT), through its `sona` CLI, which runs [whisper.cpp](https://github.com/ggml-org/whisper.cpp) by Georgi Gerganov and contributors (MIT) on OpenAI's Whisper large-v3-turbo model, locally.
 
 Song lyrics come from [LRCLIB](https://lrclib.net) by tranxuanthang and its contributors: a free, open lyrics database with an open API. The song player is a native `<audio>` element; the library survey behind it and the planned lesson components is in `docs/research/2026-09-30-lesson-components.md`.
 
