@@ -2,3 +2,4 @@
 .playwright-mcp/
 /*.png
 .superpowers/
+.claude-plugin/types/
