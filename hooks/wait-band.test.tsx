@@ -47,7 +47,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(argvs[0]?.[0]).toBe('node')
     expect(argvs[0]?.[1]).toMatch(/\/lib\/cli\.mjs$/)
     expect(argvs.map(a => a.slice(2).join(' '))).toEqual([
-      'due --limit 1 --hide-back', 'reveal c1', 'rate c1 good --clear-cue',
+      'due --limit 1 --hide-back', 'reveal c1', 'rate c1 good',
     ])
     expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
     await ui.unmount()
@@ -243,4 +243,25 @@ test('a failing CLI draws nothing of its own', async ($, on) => {
   const ui = await $.ui.mount(band('terminal'))
   expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
   await ui.unmount()
+})
+
+test('session start moves the old cue topics into waitTopics, once', async ($, on) => {
+  const calls: string[] = []
+  const sets: unknown[] = []
+  on('process.run', (_, e) => (calls.push(e.argv.slice(2).join(' ')), ok(e.argv[2] === 'config-get' ? { cueTags: ['italiano', 'code-de-la-route'] } : {})))
+  on('config.set', (_, e) => (sets.push([e.key, e.value]), { value: e.value }))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  expect(sets).toEqual([['oliba.waitTopics', 'italiano, code-de-la-route']])
+  expect(calls).toEqual(['config-get', 'config-set cueTagsMoved true'])
+})
+
+test('session start leaves waitTopics alone once it is set', { options: { waitTopics: 'italiano' } }, async ($, on) => {
+  const calls: string[] = []
+  on('process.run', (_, e) => (calls.push(e.argv.slice(2).join(' ')), ok({ cueTags: ['code-de-la-route'] })))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  expect(calls).toEqual([])
 })
