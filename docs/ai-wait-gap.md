@@ -98,16 +98,16 @@ oliba is an open-source Claude Code plugin that fills the AI wait gap with agent
 
 - 9 Ultralearning principles as the theoretical framework
 - Production over recognition: you type answers, not pick from options
-- Metalearning: `/oliba:syllabus <topic>` maps the territory before generating cards
+- Metalearning: `/oliba:map <topic>` maps the territory before generating cards
 - The Feynman Technique: explain it, get checked, discover what you don't know
 - The core constraint: the tool must not make it easy to skip the mental work
 
 ### What it adds that neither has
 
 - **Retrieval inside the gap.** The wait band runs a full repetition while the agent works: type the answer, reveal, rate. When you typed an answer, a small model suggests the grade; you confirm or overrule it.
-- **Socratic teaching.** `/oliba:teach` wins one skill per sitting by asking before telling, writes it up as a single-file HTML lesson with think-first prompts and quizzes, and turns quiz items and corrected misconceptions into cards.
-- **Topic maps.** `/oliba:syllabus Code de la route` maps the topic into ordered modules with starter cards.
-- **Drilling weak points.** `/oliba:study grill me on <topic>` climbs explain-back, why, what-if and a fresh case over your recorded misconceptions.
+- **Socratic teaching.** `/oliba:learn` wins one skill per sitting by asking before telling, writes it up as a single-file HTML lesson with think-first prompts and quizzes, and turns quiz items and corrected misconceptions into cards.
+- **Topic maps.** `/oliba:map Code de la route` maps the topic into ordered modules with starter cards.
+- **Drilling weak points.** `/oliba:review grill me on <topic>` climbs explain-back, why, what-if and a fresh case over your recorded misconceptions.
 - **Open source, local-first, zero-config.** `claude plugin install oliba@oliba`. Data in `~/.oliba/` as plain JSON. No account, no server, no macOS-only limitation.
 - **FSRS-5 algorithm.** State of the art (trained on 700M reviews, 20-30% fewer reviews than SM-2), not a fixed ladder. Better scheduling without the complexity tax on the user.
 - **Equanimitech alignment.** Sovereignty (you own your data, you choose what to learn). Awareness (cues surface without demanding). Equanimity (no guilt, no pressure, no score).
@@ -119,7 +119,7 @@ The gap is a behavioral moment. The user's attention is free. The default is to 
 The plugin does not intercept this impulse (new-tab overrides cause fatigue). It does not demand a dedicated time slot (that's Anki's failed contract). Instead:
 
 1. **During the gap:** the wait band offers one due card above the prompt: type the answer, reveal, rate it (a suggested grade when you typed one). Skip is free. Where mods are unavailable, the status line shows the card's question instead: a retrieval cue, not a demand.
-2. **When you choose to learn:** open a dedicated Claude Code session. `/oliba:study` for retrieval practice. `/oliba:syllabus` or `/oliba:teach` to map and learn a new topic. Stop whenever you want.
+2. **When you choose to learn:** open a dedicated Claude Code session. `/oliba:review` for retrieval practice. `/oliba:map` or `/oliba:learn` to map and learn a new topic. Stop whenever you want.
 
 The gap keeps cards alive with one repetition at a time. The dedicated session maps, teaches and drills. Neither surface guilts you.
 

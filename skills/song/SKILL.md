@@ -36,7 +36,7 @@ Reply with the path in one line. Nothing else.
 
 ## Which project
 
-Songs attach to a project. If `songs` lists any, use that `projectId`. Otherwise run `project-list` and take the one music project (for this learner: "Teoria musical para cantores", `2a2619ef-b358-4f6b-a4ff-df4f14071c77`). Several candidates: ask once with `AskUserQuestion`. None: create one the way `/teach` does, with `project-create`.
+Songs attach to a project. If `songs` lists any, use that `projectId`. Otherwise run `project-list` and take the one music project (for this learner: "Teoria musical para cantores", `2a2619ef-b358-4f6b-a4ff-df4f14071c77`). Several candidates: ask once with `AskUserQuestion`. None: create one the way `/learn` does, with `project-create`.
 
 ## Add from Downloads
 

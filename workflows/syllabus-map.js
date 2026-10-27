@@ -1,6 +1,6 @@
 export const meta = {
   name: 'syllabus-map',
-  description: 'Internal to oliba, invoked by /syllabus and /teach; run those instead. Maps a topic into ordered modules with prerequisites and starter cards. With args.targetNode, deepen that one node instead (used by /teach). Returns data only and saves nothing: /syllabus and /teach persist the result with `cli.mjs lesson-save`.',
+  description: 'Internal to oliba, invoked by /map and /learn; run those instead. Maps a topic into ordered modules with prerequisites and starter cards. With args.targetNode, deepen that one node instead (used by /learn). Returns data only and saves nothing: /map and /learn persist the result with `cli.mjs lesson-save`.',
   phases: [
     { title: 'Calibrate', detail: 'Assess existing knowledge and work context' },
     { title: 'Scout', detail: 'Research the topic from multiple angles' },
@@ -239,7 +239,7 @@ log(`Known: ${calibration.knownConcepts.length} concepts | Gaps: ${calibration.g
 
 // --- Phase 2: Scout (conditional) ---
 
-// Deepening a node of an existing map (/teach): the map stays as it is.
+// Deepening a node of an existing map (/learn): the map stays as it is.
 const deepenOnly = Boolean(args.targetNode && args.existingProject && args.existingProject.nodes && args.existingProject.nodes.length)
 
 let scoutResults = []

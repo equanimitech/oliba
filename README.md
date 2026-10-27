@@ -23,21 +23,21 @@ Local-first. Anti-guilt.
 
 ## How it works
 
-1. **Map.** Run `/oliba:syllabus <topic>`: the agent maps the territory into ordered modules with prerequisites and starter cards, and publishes the map as a study guide.
-2. **Learn.** Run `/oliba:teach <topic>` (no map needed). The first time, it asks why you're learning it, which language to teach you in, and which language the field's own terms stay in. Each sitting wins one skill: the agent asks what you think before telling you anything, then probes your answers until you reach the idea yourself. It writes the sitting up as one self-contained HTML lesson with think-first prompts and instant-feedback quizzes, which opens in your browser and can be shared as a single file. Quiz items and corrected misconceptions become cards. `/oliba:teach <topic> ?` brings questions back to the terminal.
-3. **Study.** Run `/oliba:study` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules. `/oliba:study grill me on <topic>` drills your recorded misconceptions and weak cards: explain it back, then why, what-if and a fresh case.
-4. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. Answer it in place with `/oliba:study <your answer>`. One cue, never a count.
+1. **Map.** Run `/oliba:map <topic>`: the agent maps the territory into ordered modules with prerequisites and starter cards, and publishes the map as a study guide.
+2. **Learn.** Run `/oliba:learn <topic>` (no map needed). The first time, it asks why you're learning it, which language to teach you in, and which language the field's own terms stay in. Each sitting wins one skill: the agent asks what you think before telling you anything, then probes your answers until you reach the idea yourself. It writes the sitting up as one self-contained HTML lesson with think-first prompts and instant-feedback quizzes, which opens in your browser and can be shared as a single file. Quiz items and corrected misconceptions become cards. `/oliba:learn <topic> ?` brings questions back to the terminal.
+3. **Review.** Run `/oliba:review` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules. `/oliba:review grill me on <topic>` drills your recorded misconceptions and weak cards: explain it back, then why, what-if and a fresh case.
+4. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. Answer it in place with `/oliba:review <your answer>`. One cue, never a count.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `/oliba:syllabus <topic>` | Map a topic: modules, prerequisites, starter cards |
-| `/oliba:teach <topic>[: <node>]` | One skill per sitting by Socratic questions, written up as an HTML lesson |
-| `/oliba:teach <topic> ? [question]` | Socratic follow-up questions in the terminal |
-| `/oliba:study [tag \| project \| answer]` | FSRS retrieval session, or score the status-line cue |
-| `/oliba:study grill me on <topic>` | Drill recorded misconceptions and weak cards |
-| `/oliba:study results [prompt]` | Rate a lesson's cards from saved quiz results by hand (normally automatic) |
+| `/oliba:map <topic>` | See a whole topic first: modules, prerequisites, starter cards |
+| `/oliba:learn <topic>[: <node>]` | Learn something new: one skill per sitting by Socratic questions, written up as an HTML lesson |
+| `/oliba:learn <topic> ? [question]` | Socratic follow-up questions in the terminal |
+| `/oliba:review [tag \| project \| answer]` | Keep what you have: FSRS retrieval session, or score the status-line cue |
+| `/oliba:review grill me on <topic>` | Drill recorded misconceptions and weak cards |
+| `/oliba:review results [prompt]` | Rate a lesson's cards from saved quiz results by hand (normally automatic) |
 | `/oliba:song [add \| <title>]` | File the teacher's recordings; one page per song with a practice player |
 | `/oliba:class [<audio>]` | Transcribe a class recording on your Mac; keep what was said as song notes, cards and records |
 | `/oliba:config` | Settings and status line setup |
@@ -74,9 +74,9 @@ See [THEORY.md](THEORY.md) for how the plugin maps to Scott Young's 9 Ultralearn
 
 All data lives in `~/.oliba/` as plain JSON. No account, no server, no sync. You own your learning state.
 
-Lessons are files too: `~/.oliba/lessons/<topic>/` holds each lesson, an `index.html` linking them, and the topic's `glossary.html`; `~/.oliba/glossary.html` gathers every topic's terms. `~/.oliba/index.html` is the front door: every topic, its mission, and links to its lessons and study guide (`cli.mjs index --open` rebuilds and opens it). Each lesson carries its own styles and script, so it works offline and can be sent on its own. The page stores nothing and sends nothing. Click **Save my results** at the end of a lesson: it downloads your first attempts as a small JSON file, and oliba picks it up from `~/Downloads` on your next prompt, rates the lesson's cards from it (a miss comes back sooner), and deletes the file. That's it. If your browser won't download, the confirmation offers a `/study` prompt to paste instead.
+Lessons are files too: `~/.oliba/lessons/<topic>/` holds each lesson, an `index.html` linking them, and the topic's `glossary.html`; `~/.oliba/glossary.html` gathers every topic's terms. `~/.oliba/index.html` is the front door: every topic, its mission, and links to its lessons and study guide (`cli.mjs index --open` rebuilds and opens it). Each lesson carries its own styles and script, so it works offline and can be sent on its own. The page stores nothing and sends nothing. Click **Save my results** at the end of a lesson: it downloads your first attempts as a small JSON file, and oliba picks it up from `~/Downloads` on your next prompt, rates the lesson's cards from it (a miss comes back sooner), and deletes the file. That's it. If your browser won't download, the confirmation offers a `/review` prompt to paste instead.
 
-The front door also groups topics by tag and folds archived ones away. To archive a topic or retag it, ask in the conversation ("archive Chess", "tag Teoria musical as voz"). An archived topic's cards rest, out of study and the cue, until you bring it back; nothing is deleted. `/oliba:study <tag>` studies every topic with that tag. After an upgrade oliba re-renders every page once, at session start; `cli.mjs index --all` does it on demand.
+The front door also groups topics by tag and folds archived ones away. To archive a topic or retag it, ask in the conversation ("archive Chess", "tag Teoria musical as voz"). An archived topic's cards rest, out of study and the cue, until you bring it back; nothing is deleted. `/oliba:review <tag>` studies every topic with that tag. After an upgrade oliba re-renders every page once, at session start; `cli.mjs index --all` does it on demand.
 
 Override the data directory with `OLIBA_DIR` for testing or custom locations.
 
@@ -84,7 +84,7 @@ Coming from lull-n-learn? Data in `~/.lull-n-learn/` moves to `~/.oliba/` on fir
 
 ## Acknowledgements
 
-The way `/teach` works owes a great deal to **Matt Pocock** and his [`/teach` skill](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach), from his MIT-licensed [skills](https://github.com/mattpocock/skills) collection. Using it on a real learning need showed us what oliba was missing. From him we learned:
+The way `/learn` works owes a great deal to **Matt Pocock** and his [`/teach` skill](https://github.com/mattpocock/skills/tree/main/skills/productivity/teach), from his MIT-licensed [skills](https://github.com/mattpocock/skills) collection. Using it on a real learning need showed us what oliba was missing. From him we learned:
 
 - **Mission first.** Ask *why* before teaching anything, and aim every lesson at that goal.
 - **Learning records.** Keep what the learner has shown (priors, corrected misconceptions, insights) as evidence-gated records that can be superseded, and use them to pick the next lesson in the zone of proximal development.
