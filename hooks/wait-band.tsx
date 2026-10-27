@@ -18,18 +18,23 @@ const cli = async ($: EngineInterface, args: string[]) => {
   }
 }
 
-// The first card due under the first tag that has one; undefined, no tag.
-const firstDue = async ($: EngineInterface, tags: (string | undefined)[]) => {
+// The first card due under the first tag that has one, skipped ones left out;
+// undefined, no tag.
+const firstDue = async ($: EngineInterface, tags: (string | undefined)[], skipped: Set<string>) => {
   for (const tag of tags) {
     // An ambiguous tag answers { ambiguous, projects }: nothing due for it.
-    const result = await cli($, ['due', '--limit', '1', '--hide-back'].concat(tag ? ['--tag', tag] : []))
-    if (Array.isArray(result) && result[0]) return result[0] as { id: string; front: string }
+    const result = await cli($, ['due', '--limit', String(skipped.size + 1), '--hide-back'].concat(tag ? ['--tag', tag] : []))
+    const pick = Array.isArray(result) ? result.find(c => !skipped.has(c.id)) : undefined
+    if (pick) return pick as { id: string; front: string }
   }
   return undefined
 }
 
 // Every topic once, from `start` round to the one before it.
 export const topicOrder = (topics: string[], start: number) => [...topics.slice(start), ...topics.slice(0, start)]
+
+// Nothing typed, back not shown: the learner is not mid-card.
+const untouched = (c: Card) => !c.typed.trim() && c.back === undefined
 
 const RATINGS: readonly Rating[] = ['again', 'hard', 'good']
 const LABELS: Record<Rating, string> = { again: 'Missed', hard: 'Shaky', good: 'Got it' }
@@ -78,15 +83,27 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
+  // Session memory: cards skipped (not offered again), cards being rated.
+  const skipped = new Set<string>()
+  const rateInFlight = new Set<string>()
+
   // One card per main-loop turn, fetched only when none is in progress. The
   // turn starts first (next(e) resolves at the start, not the end), so the
-  // fetch never delays it.
+  // fetch never delays it. An untouched held card is dropped once another
+  // session has rated it.
   on('turn.start', async ($, e, next) => {
     const result = await next(e)
+    if (e.agentId === undefined) {
+      const held = await read($, card)
+      if (held && untouched(held) && !rateInFlight.has(held.id)) {
+        const due = await cli($, ['due', '--hide-back'])
+        if (Array.isArray(due) && !due.some(c => c.id === held.id)) await update($, card, cur => cur?.id === held.id ? null : cur)
+      }
+    }
     if (e.agentId === undefined && (await read($, card)) === null) {
       // No topics: whatever is due first. Topics: a random one, then the rest in order.
       const start = Math.floor(Math.random() * topics.length)
-      const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined])
+      const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined], skipped)
       if (due) await update($, card, () => ({ id: due.id, front: due.front, typed: '' }))
     }
     return result
@@ -97,7 +114,7 @@ export const register: Register = (on, options) => {
     if (c === null || e.props.hasSurvey) return next(e)
     // The band leaves when the turn ends, unless the learner is mid-card; the
     // card stays in the atom and returns on the next turn.
-    if (!e.props.isWorking && !c.typed.trim() && c.back === undefined) return next(e)
+    if (!e.props.isWorking && untouched(c)) return next(e)
 
     const els = $.ui.resolve(e)
     const { Box, Button, Text } = els
@@ -128,13 +145,21 @@ export const register: Register = (on, options) => {
       const graded = await suggest($, c.front, shown.back, answer)
       if (graded) await update($, card, cur => isThis(cur) && cur?.back !== undefined ? { ...cur, ...graded } : cur)
     }
-    const skip = () => claim()
-    const rate = async (rating: Rating) => {
-      const taken = await claim()
-      if (!taken) return
-      if (!(await cli($, ['rate', c.id, rating]))) {
-        await update($, card, cur => cur ?? taken)
-        return $.ui.toast('oliba: not saved, try again')
+    const skip = async () => {
+      if (!rateInFlight.has(c.id) && await claim()) skipped.add(c.id)
+    }
+    // The card stays in the atom until the rate CLI has written, so a turn
+    // starting meanwhile cannot fetch it again.
+    const rate = async (grade: Rating) => {
+      if (rateInFlight.has(c.id)) return
+      rateInFlight.add(c.id)
+      try {
+        // A press on a stale render: the card is already rated or gone.
+        if (!isThis(await read($, card))) return
+        if (await cli($, ['rate', c.id, grade])) await claim()
+        else $.ui.toast('oliba: not saved, try again')
+      } finally {
+        rateInFlight.delete(c.id)
       }
     }
 

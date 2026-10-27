@@ -1,6 +1,6 @@
 {
   "name": "oliba",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "description": "Agent-native spaced repetition for Claude Code. Map a topic, learn it one skill per sitting through Socratic questions and single-file HTML lessons, and keep it with FSRS reviews and a one-card wait band while Claude works. Grounded in Scott Young's Ultralearning. Local-first, anti-guilt.",
   "author": {
     "name": "EquanimiTech",
