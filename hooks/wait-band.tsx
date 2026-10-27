@@ -160,11 +160,10 @@ export const register: Register = (on, options) => {
 
     // Backs hold markdown; the band scrolls past maxRows, so nothing is cut here.
     const Markdown = 'Markdown' in els ? els.Markdown : undefined
-    // Self-assessment is the learner's call: Got it is primary, nothing is
-    // focused, whatever Haiku suggested. The suggestion is only the dim line.
+    // Self-assessment is the learner's call: no rating is primary or focused,
+    // whatever Haiku suggested. The suggestion is only the dim line.
     const grade = (key: string, label: string, hotkey: string, rating: Rating) => (
-      <Button key={key} label={label} hotkey={hotkey} onPress={() => rate(rating)}
-        {...(rating === 'good' ? { variant: 'primary' as const } : {})} />
+      <Button key={key} label={label} hotkey={hotkey} onPress={() => rate(rating)} />
     )
     return (
       <Box flexDirection="column" width={width} paddingX={2} paddingY={1}>

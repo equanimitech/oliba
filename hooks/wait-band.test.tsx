@@ -184,15 +184,13 @@ const graded = async ($: Parameters<TestBody>[0], on: Parameters<TestBody>[1], r
   return { ui, rates }
 }
 
-test('a suggested grade is named, not chosen: no autoFocus, only Got it primary', async ($, on) => {
+test('a suggested grade is named, not chosen: no rating focused or primary', async ($, on) => {
   const { ui, rates } = await graded($, on, 'Sure: {"rating": "hard", "why": "Close, but voglio is the blunter want"}')
   expect(await ui.find({ type: 'Text', text: 'Shaky? Close, but voglio is the blunter want' })).toBeDefined()
   for (const key of ['missed', 'shaky', 'gotit']) {
     expect((await ui.find({ key }))?.props.autoFocus).toBeUndefined()
+    expect((await ui.find({ key }))?.props.variant).toBeUndefined()
   }
-  expect((await ui.find({ key: 'shaky' }))?.props.variant).toBeUndefined()
-  expect((await ui.find({ key: 'missed' }))?.props.variant).toBeUndefined()
-  expect((await ui.find({ key: 'gotit' }))?.props.variant).toBe('primary')
   await ui.press({ key: 'shaky' })
   expect(rates).toEqual(['hard'])
   await ui.unmount()
@@ -210,7 +208,7 @@ for (const [name, reply] of [['a model failure', undefined], ['invalid JSON', 'n
   test(`${name}: no suggestion, self-rate as before`, async ($, on) => {
     const { ui, rates } = await graded($, on, reply)
     const gotit = await ui.find({ key: 'gotit' })
-    expect(gotit?.props.variant).toBe('primary')
+    expect(gotit?.props.variant).toBeUndefined()
     expect(gotit?.props.autoFocus).toBeUndefined()
     // No why line: the front and the typed answer are the only texts.
     expect((await ui.findAll({ type: 'Text' })).map(t => t.text)).toEqual(['🦉 Say "I would like" in Italian', 'you: voglio'])
