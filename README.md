@@ -58,6 +58,14 @@ One due card's front shows in the status line as a retrieval cue while Claude wo
 
 No counter, no streak, no debt. The cue is a gift, not a demand.
 
+## Wait band
+
+While Claude works on your prompt, one due card can sit above the prompt. Type your answer, reveal the back, then rate yourself: `1` again, `2` hard, `3` good. Press ctrl+x tab (or click the band) to reach it, Esc to go back to the prompt. Skip is free: the card stays as it was. One card per turn, and the band goes quiet once you rate or skip. If nothing is due, you never see it.
+
+To draw cards only from some topics, set `waitTopics` in `/config` to tags or projects, comma-separated (`italiano, code-de-la-route`). Each turn picks one at random and falls back to the others. Empty means whatever is due first.
+
+The band needs a Claude Code build that loads hooks modules (mods): the terminal and the desktop app's Code tab. On the mobile app it shows Reveal only, with no field to type in.
+
 ## Theory
 
 See [THEORY.md](THEORY.md) for how the plugin maps to Scott Young's 9 Ultralearning principles.
@@ -97,6 +105,8 @@ No dependencies, no build step. Run the tests with:
 ```sh
 node --test lib/*.test.mjs
 ```
+
+The wait band is `hooks/wait-band.tsx`; check and test it with `claude plugin validate .` and `claude plugin test .`.
 
 Set `OLIBA_DIR` to a scratch folder to try the CLI without touching your own data.
 

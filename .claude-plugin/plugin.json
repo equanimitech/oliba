@@ -17,5 +17,14 @@
     "calm-technology",
     "equanimitech",
     "oliba"
-  ]
+  ],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "waitTopics": {
+      "type": "string",
+      "title": "Wait band topics",
+      "description": "Comma-separated tags or projects the wait band draws cards from. Empty: whatever is due first.",
+      "default": ""
+    }
+  }
 }
