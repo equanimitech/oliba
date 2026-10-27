@@ -104,7 +104,7 @@ oliba is an open-source Claude Code plugin that fills the AI wait gap with agent
 
 ### What it adds that neither has
 
-- **Retrieval inside the gap.** The wait band runs a full repetition while the agent works: type the answer, reveal, rate. When you typed an answer, a small model suggests the grade; you confirm or overrule it.
+- **Retrieval inside the gap.** The wait band runs a full repetition while the agent works: type the answer, reveal, rate. When you typed an answer, a small model names a grade as a hint; you choose your own.
 - **Socratic teaching.** `/oliba:learn` wins one skill per sitting by asking before telling, writes it up as a single-file HTML lesson with think-first prompts and quizzes, and turns quiz items and corrected misconceptions into cards.
 - **Topic maps.** `/oliba:map Code de la route` maps the topic into ordered modules; cards come later, from learning.
 - **Drilling weak points.** `/oliba:review grill me on <topic>` climbs explain-back, why, what-if and a fresh case over your recorded misconceptions.
@@ -118,7 +118,7 @@ The gap is a behavioral moment. The user's attention is free. The default is to 
 
 The plugin does not intercept this impulse (new-tab overrides cause fatigue). It does not demand a dedicated time slot (that's Anki's failed contract). Instead:
 
-1. **During the gap:** the wait band offers one due card above the prompt: type the answer, reveal, rate it (a suggested grade when you typed one). Skip is free.
+1. **During the gap:** the wait band offers one due card above the prompt: type the answer, reveal, rate it (a hinted grade when you typed one). Skip is free.
 2. **When you choose to learn:** open a dedicated Claude Code session. `/oliba:review` for retrieval practice. `/oliba:map` or `/oliba:learn` to map and learn a new topic. Stop whenever you want.
 
 The gap keeps cards alive with one repetition at a time. The dedicated session maps, teaches and drills. Neither surface guilts you.
