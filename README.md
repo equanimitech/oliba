@@ -23,7 +23,7 @@ Local-first. Anti-guilt.
 
 ## How it works
 
-1. **Map.** Run `/oliba:map <topic>`: the agent maps the territory into ordered modules with prerequisites and starter cards, and publishes the map as a study guide.
+1. **Map.** Run `/oliba:map <topic>`: the agent maps the territory into ordered modules with prerequisites, and publishes the map as a study guide.
 2. **Learn.** Run `/oliba:learn <topic>` (no map needed). The first time, it asks why you're learning it, which language to teach you in, and which language the field's own terms stay in. Each sitting wins one skill: the agent asks what you think before telling you anything, then probes your answers until you reach the idea yourself. It writes the sitting up as one self-contained HTML lesson with think-first prompts and instant-feedback quizzes, which opens in your browser and can be shared as a single file. Quiz items and corrected misconceptions become cards. `/oliba:learn <topic> ?` brings questions back to the terminal.
 3. **Review.** Run `/oliba:review` in a dedicated session. The FSRS algorithm picks due cards. You type your answer from memory. The agent scores it and reschedules. `/oliba:review grill me on <topic>` drills your recorded misconceptions and weak cards: explain it back, then why, what-if and a fresh case.
 4. **Ambient cues (optional).** Say yes to the status line and one due card's front appears as a retrieval cue. Answer it in place with `/oliba:review <your answer>`. One cue, never a count.
@@ -32,7 +32,7 @@ Local-first. Anti-guilt.
 
 | Command | What it does |
 |---|---|
-| `/oliba:map <topic>` | See a whole topic first: modules, prerequisites, starter cards |
+| `/oliba:map <topic>` | See a whole topic first: modules and prerequisites, no cards |
 | `/oliba:learn <topic>[: <node>]` | Learn something new: one skill per sitting by Socratic questions, written up as an HTML lesson |
 | `/oliba:learn <topic> ? [question]` | Socratic follow-up questions in the terminal |
 | `/oliba:review [tag \| project \| answer]` | Keep what you have: FSRS retrieval session, or score the status-line cue |

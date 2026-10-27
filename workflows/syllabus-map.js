@@ -1,6 +1,6 @@
 export const meta = {
   name: 'syllabus-map',
-  description: 'Internal to oliba, invoked by /map and /learn; run those instead. Maps a topic into ordered modules with prerequisites and starter cards. With args.targetNode, deepen that one node instead (used by /learn). Returns data only and saves nothing: /map and /learn persist the result with `cli.mjs lesson-save`.',
+  description: 'Internal to oliba, invoked by /map and /learn; run those instead. Maps a topic into ordered modules with prerequisites; no cards. With args.targetNode, deepen that one node and generate its cards (used by /learn). Returns data only and saves nothing: /map and /learn persist the result with `cli.mjs lesson-save`.',
   phases: [
     { title: 'Calibrate', detail: 'Assess existing knowledge and work context' },
     { title: 'Scout', detail: 'Research the topic from multiple angles' },
@@ -109,20 +109,8 @@ const MAP_SCHEMA = {
           id: { type: 'string' },
           title: { type: 'string' },
           description: { type: 'string' },
-          starterCards: {
-            type: 'array',
-            description: '1-2 starter cards: what the node is and how it relates to a neighbour',
-            items: {
-              type: 'object',
-              properties: {
-                front: { type: 'string' },
-                back: { type: 'string' },
-              },
-              required: ['front', 'back'],
-            },
-          },
         },
-        required: ['id', 'title', 'description', 'starterCards'],
+        required: ['id', 'title', 'description'],
       },
     },
     edges: {
@@ -333,7 +321,6 @@ Rules:
 - Edges are prerequisite relationships: from → to means "from" should be studied before "to".
 - Generate short UUIDs for node IDs (8 hex chars, like "a1b2c3d4").
 - If updating an existing graph, preserve existing node IDs and add new nodes. Don't remove nodes that have cards attached.
-- starterCards: 1-2 per NEW node (none for existing nodes): "What is X?" and "How does X relate to Y?". The front demands production, the back is 1-2 sentences. No project: or node: tags.
 - suggestedStart: the best first node (fewest prerequisites, foundational).
 - Node descriptions: one sentence, what the learner will understand after deepening this node.`,
   { label: 'synthesize', schema: MAP_SCHEMA }

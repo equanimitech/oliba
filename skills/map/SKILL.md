@@ -1,11 +1,11 @@
 ---
 name: map
-description: See a whole topic before learning it - map it into ordered modules with prerequisites and starter cards, published as a study-guide artifact. Deepens nothing up front; /learn researches each node when the learner reaches it. Use when the user runs /map, says "map this topic", "show me the whole of X", "what's in X", or "what should I learn first about X".
+description: See a whole topic before learning it - map it into ordered modules with prerequisites, published as a study-guide artifact. Makes no cards and deepens nothing up front; /learn researches each node and makes its cards when the learner reaches it. Use when the user runs /map, says "map this topic", "show me the whole of X", "what's in X", or "what should I learn first about X".
 ---
 
 # /map: see the territory first
 
-The user names a topic, one pre-flight question calibrates level and sources, then the workflow researches and maps it: ordered modules, prerequisites, one or two starter cards per node. It stops there. Nodes are deepened one at a time by `/learn`, when the learner gets to them.
+The user names a topic, one pre-flight question calibrates level and sources, then the workflow researches and maps it: ordered modules and prerequisites, no cards. It stops there. Nodes are deepened one at a time by `/learn`, when the learner gets to them.
 
 If `node` is not found, tell the user in one line to install the Node.js LTS from nodejs.org, then restart Claude Code, and stop.
 
@@ -87,7 +87,7 @@ args: {
 
 The workflow saves nothing. Its result carries `saved: false`; nothing exists in the store until this step succeeds. Always run this step when the workflow returns, even if you launched the workflow some other way.
 
-Write the workflow result to a temp file and pipe it to `lesson-save`, which creates or updates the project, merges the map, creates every starter card with the canonical `project:<id>` and `node:<id>` tags, and links cards to nodes in one step:
+Write the workflow result to a temp file and pipe it to `lesson-save`, which creates or updates the project, and merges the map in one step:
 
 ```bash
 # new project (no existing project for this topic)
@@ -116,7 +116,7 @@ echo '{"artifactUrl":"<url>"}' | node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" projec
 
 ## 6. Report
 
-Say: "**<topic>** — N nodes, M starter cards. [link to artifact] `/learn <topic>` starts at the beginning. All your topics: `~/.oliba/index.html`." with N and M taken from the verified `project-get` read-back.
+Say: "**<topic>**: N nodes. [link to artifact] `/learn <topic>` starts at the beginning. All your topics: `~/.oliba/index.html`." with N taken from the verified `project-get` read-back.
 
 Nothing else. The user comes back when ready.
 
@@ -181,7 +181,6 @@ Use the `artifact-design` skill before building it.
     <summary>
       <span class="status-badge">mapped</span>
       <span class="node-title">Node Title</span>
-      <span class="card-count">3 cards</span>
     </summary>
     <p class="description">One-line description...</p>
 

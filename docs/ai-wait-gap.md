@@ -106,7 +106,7 @@ oliba is an open-source Claude Code plugin that fills the AI wait gap with agent
 
 - **Retrieval inside the gap.** The wait band runs a full repetition while the agent works: type the answer, reveal, rate. When you typed an answer, a small model suggests the grade; you confirm or overrule it.
 - **Socratic teaching.** `/oliba:learn` wins one skill per sitting by asking before telling, writes it up as a single-file HTML lesson with think-first prompts and quizzes, and turns quiz items and corrected misconceptions into cards.
-- **Topic maps.** `/oliba:map Code de la route` maps the topic into ordered modules with starter cards.
+- **Topic maps.** `/oliba:map Code de la route` maps the topic into ordered modules; cards come later, from learning.
 - **Drilling weak points.** `/oliba:review grill me on <topic>` climbs explain-back, why, what-if and a fresh case over your recorded misconceptions.
 - **Open source, local-first, zero-config.** `claude plugin install oliba@oliba`. Data in `~/.oliba/` as plain JSON. No account, no server, no macOS-only limitation.
 - **FSRS-5 algorithm.** State of the art (trained on 700M reviews, 20-30% fewer reviews than SM-2), not a fixed ladder. Better scheduling without the complexity tax on the user.

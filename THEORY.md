@@ -15,7 +15,7 @@ This project is inspired by Young's framework. It is not affiliated with or endo
 
 Before learning a skill, research how it works, what subtopics exist, and what order to tackle them. AI has dramatically reduced the cost of this research.
 
-**Plugin feature:** `/map <topic>` dispatches a workflow that maps the territory, sequences subtopics, and generates starter cards straight into the deck. It deepens nothing up front.
+**Plugin feature:** `/map <topic>` dispatches a workflow that maps the territory and sequences subtopics. It makes no cards and deepens nothing up front: cards come from learning, not from the map.
 
 ### 2. Focus: Sharpen Your Knife
 
