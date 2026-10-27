@@ -308,3 +308,13 @@ test('not working, back revealed: the band stays', async ($, on) => {
   expect(await ui.find({ key: 'gotit' })).toBeDefined()
   await ui.unmount()
 })
+
+test('the turn starts before the card is fetched', async ($, on) => {
+  const order: string[] = []
+  on('process.run', (_, e) => (order.push(e.argv[2] ?? ''), ok([])))
+  on('turn.start', (_, e) => (order.push('start'), { turnId: e.turnId }))
+
+  const result = await $.turn.start({ text: 'hi', turnId: 't1' })
+  expect(result).toEqual({ turnId: 't1' })
+  expect(order).toEqual(['start', 'due'])
+})

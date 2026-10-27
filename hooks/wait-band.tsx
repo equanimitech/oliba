@@ -78,15 +78,18 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
-  // One card per main-loop turn, fetched only when none is in progress.
+  // One card per main-loop turn, fetched only when none is in progress. The
+  // turn starts first (next(e) resolves at the start, not the end), so the
+  // fetch never delays it.
   on('turn.start', async ($, e, next) => {
+    const result = await next(e)
     if (e.agentId === undefined && (await read($, card)) === null) {
       // No topics: whatever is due first. Topics: a random one, then the rest in order.
       const start = Math.floor(Math.random() * topics.length)
       const due = await firstDue($, topics.length ? topicOrder(topics, start) : [undefined])
       if (due) await update($, card, () => ({ id: due.id, front: due.front, typed: '' }))
     }
-    return next(e)
+    return result
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
