@@ -37,14 +37,9 @@ Local-first. Anti-guilt.
 | `/oliba:review [tag \| project]` | Keep what you have: FSRS retrieval session |
 | `/oliba:review grill me on <topic>` | Drill recorded misconceptions and weak cards |
 | `/oliba:review results [prompt]` | Rate a lesson's cards from saved quiz results by hand (normally automatic) |
-| `/oliba:song [add \| <title>]` | File the teacher's recordings; one page per song with a practice player |
 | `/oliba:config` | Wait band topics; archive and tag topics |
 
-## Songs
-
-For a singer with a teacher. Download the teacher's audio in WhatsApp Web (or AirDrop it) and run `/oliba:song add`: oliba finds the new files in `~/Downloads`, pairs the guide ("com voz") with the backing ("sem voz"), asks which song and key, and copies them next to the song's page in `~/.oliba/songs/<topic>/`. The page switches guide and backing at the same spot, loops a section, slows down without changing pitch, and shows the lyrics large below the player, lit line by line when their timing fits the recording. LRCLIB often holds several timings of one song: pick another from the player bar, nudge the delay, or turn following off. Tell `/oliba:song` where the chorus starts, paste a cifra, say "Flor de Lis tá guardada" or "marca Aquarela como samba": the repertoire shows the songs you're singing now first and folds the stored ones away, newest first, with no dates and no counts; tags show as quiet labels. Pages are for practice; every change happens in the conversation. A song is never a card.
-
-Lyrics come from [LRCLIB](https://lrclib.net), fetched for your own study and stored only on your machine.
+Practice pages for songs moved to their own plugin, [bemtevi](https://github.com/equanimitech/bemtevi), which copies the songs you filed here on its first session; `~/.oliba/songs` stays until you delete it.
 
 ## Wait band
 
@@ -85,8 +80,6 @@ The way `/learn` works owes a great deal to **Matt Pocock** and his [`/teach` sk
 - **Grilling**, from his separate [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) and [`grill-me`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me) skills: relentless questioning as a way to stress-test understanding. oliba's grill mode points it at your recorded misconceptions.
 
 oliba's code, styles and wording are its own, written to fit its spaced-repetition core; the ideas above are his. Thank you, Matt.
-
-Song lyrics come from [LRCLIB](https://lrclib.net) by tranxuanthang and its contributors: a free, open lyrics database with an open API. The song player is a native `<audio>` element; the library survey behind it and the planned lesson components is in `docs/research/2026-09-30-lesson-components.md`.
 
 ## Development
 
