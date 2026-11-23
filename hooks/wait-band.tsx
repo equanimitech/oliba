@@ -84,22 +84,32 @@ const suggest = async ($: EngineInterface, front: string, back: string, typed: s
   }
 }
 
-export const register: Register = (on, options) => {
-  const topics = String(options.waitTopics ?? '').split(',').map(t => t.trim()).filter(Boolean)
+const parseTopics = (v: unknown) => String(v ?? '').split(',').map(t => t.trim()).filter(Boolean)
 
-  // 0.19 retired the status-line cue: its topics (oliba config cueTags) become
-  // waitTopics, once, unless waitTopics is already set.
+export const register: Register = (on, options) => {
+  // waitTopics lives in oliba's own config; read at session start.
+  let topics: string[] = []
+
+  // Topics come from config.json. Two one-time moves feed it: the plugin-config
+  // row of 0.21 and earlier (waitTopicsMoved), and the status-line cue's
+  // cueTags retired in 0.19 (cueTagsMoved). Neither runs once waitTopics is set.
   on('session.start', async ($, e, next) => {
-    if (!topics.length) {
-      const config = await cli($, ['config-get'])
-      const tags: string[] = [config?.cueTags ?? []].flat().filter(Boolean)
-      if (tags.length && !config.cueTagsMoved) {
-        const value = tags.join(', ')
-        const { deny } = await $.config.set({ key: 'oliba.waitTopics', value })
-        if (deny) $.ui.toast(`oliba: set waitTopics to "${value}" in /config`)
+    const config = await cli($, ['config-get'])
+    let value = String(config?.waitTopics ?? '')
+    const legacy = String(options.waitTopics ?? '').trim()
+    const tags: string[] = [config?.cueTags ?? []].flat().filter(Boolean)
+    if (!parseTopics(value).length) {
+      if (legacy && !config?.waitTopicsMoved) {
+        value = legacy
+        await cli($, ['config-set', 'waitTopics', value])
+        await cli($, ['config-set', 'waitTopicsMoved', 'true'])
+      } else if (tags.length && !config?.cueTagsMoved) {
+        value = tags.join(', ')
+        await cli($, ['config-set', 'waitTopics', value])
         await cli($, ['config-set', 'cueTagsMoved', 'true'])
       }
     }
+    topics = parseTopics(value)
     return next(e)
   })
 
