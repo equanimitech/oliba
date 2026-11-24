@@ -185,10 +185,46 @@ dl.glossary dt { font-weight: 600; margin-top: 1.1rem; }
 dl.glossary dd { margin: .15rem 0 0 1rem; }
 .avoid { color: var(--muted); font-size: .9rem; }
 
-/* Home index: projects under their tags, archived ones folded away. */
-section.project h3 { margin-top: 1.25rem; }
-details.archived { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
-details.archived summary { cursor: pointer; font: .9rem/1.4 system-ui, sans-serif; color: var(--muted); }
+/* The desk and the project page: wider than a lesson, roomy blocks, quiet chrome. */
+main[data-type="home"], main[data-type="project"] { max-width: 46rem; }
+main[data-type="home"] > h1 { margin-bottom: 1rem; }
+h2.tag {
+  margin: 3.5rem 0 0;
+  padding-top: 0;
+  border-top: 0;
+  font: 600 .8rem/1.3 system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+section.project { margin: 0; padding: 2rem 0 2.25rem; border-top: 1px solid var(--rule); }
+section.project h2, section.project h3 { margin: 0 0 .35rem; padding: 0; border: 0; font-size: 1.5rem; }
+section.project .mission { max-width: 34rem; margin-bottom: 1.1rem; font-size: .9rem; }
+section.project ol.lessons { margin: 0 0 1.1rem; padding-left: 1.75rem; }
+section.project ol.lessons li { margin: .3rem 0; padding-left: .25rem; }
+ol.lessons li::marker { color: var(--muted); font: .85rem system-ui, sans-serif; }
+p.links { margin: 0; font: .9rem/1.4 system-ui, sans-serif; }
+p.links a.aside { margin-left: 1.1rem; color: var(--muted); font-size: .8rem; }
+.back { margin: 0 0 1.5rem; font: .85rem/1.4 system-ui, sans-serif; }
+.back a { color: var(--muted); }
+details.archived { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+details.archived summary { cursor: pointer; font: .9rem/1.4 system-ui, sans-serif; color: var(--muted); padding: .35rem 0; }
+details.archived section.project { padding: 1.1rem 0 1.25rem; }
+details.archived section.project h3 { font-size: 1.1rem; }
+
+/* The map: one article per node, its cards as one-line reveals. */
+main[data-type="project"] h2 { margin-top: 3rem; }
+article.node { padding: 1.1rem 0 1.2rem; border-top: 1px solid var(--rule); }
+article.node h3 { margin: 0 0 .2rem; }
+article.node .desc { margin: 0 0 .5rem; color: var(--muted); font-size: .95rem; }
+article.node.empty h3 { color: var(--muted); font-weight: 500; }
+.node-lessons { margin: 0 0 .6rem; font: .85rem/1.5 system-ui, sans-serif; }
+.cards details { border-top: 1px dotted var(--rule); font-size: .95rem; }
+.cards summary { cursor: pointer; padding: .45rem 0; color: var(--ink); }
+.cards summary:hover { color: var(--accent); }
+.cards details p { margin: 0 0 .7rem; padding: .5rem .8rem; background: var(--wash); border-radius: 6px; white-space: pre-line; }
+ul.sources { padding-left: 1.25rem; font-size: .92rem; }
+ul.sources li { margin: .35rem 0; overflow-wrap: anywhere; }
 
 @media print {
   body { background: #fff; color: #000; padding: 0; font-size: 11pt; }
@@ -200,3 +236,4 @@ details.archived summary { cursor: pointer; font: .9rem/1.4 system-ui, sans-seri
 @media (prefers-reduced-motion: no-preference) {
   fieldset.quiz button { transition: background-color .15s, border-color .15s; }
 }
+h2 + article.node { border-top: 0; }
