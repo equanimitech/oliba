@@ -54,15 +54,17 @@ for (const surface of ['terminal', 'desktop'] as const) {
   })
 }
 
-test('waitTopics: tries each topic, draws nothing when none is due', { options: { waitTopics: 'italiano, code-de-la-route' } }, async ($, on) => {
+test('waitTopics (from config-get): tries each topic, draws nothing when none is due', async ($, on) => {
   const tags: string[] = []
-  on('process.run', (_, e) => (tags.push(e.argv.at(-1) ?? ''), ok([])))
+  on('process.run', (_, e) => (tags.push(e.argv.at(-1) ?? ''), ok(e.argv[2] === 'config-get' ? { waitTopics: 'italiano, code-de-la-route' } : [])))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('ui.render', ($, e) => {
     const { Text } = $.ui.resolve(e)
     return <Text>engine</Text>
   })
   on('turn.start', (_, e) => ({ turnId: e.turnId }))
 
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
   await $.turn.start({ text: 'hi', turnId: 't1' })
   const ui = await $.ui.mount(band('terminal'))
   expect(tags.filter(t => t !== 'config-get').sort()).toEqual(['code-de-la-route', 'italiano'])
@@ -92,12 +94,14 @@ test('a blank answer hides the you: line', async ($, on) => {
   await ui.unmount()
 })
 
-test('an ambiguous topic counts as nothing due; the next topic is tried', { options: { waitTopics: 'it, code-de-la-route' } }, async ($, on) => {
-  on('process.run', (_, e) => ok(e.argv.at(-1) === 'it'
+test('an ambiguous topic counts as nothing due; the next topic is tried', async ($, on) => {
+  on('process.run', (_, e) => ok(e.argv[2] === 'config-get' ? { waitTopics: 'it, code-de-la-route' } : e.argv.at(-1) === 'it'
     ? { ambiguous: true, projects: [{ id: 'a' }, { id: 'b' }] }
     : [{ id: 'c2', front: 'Panneau triangulaire ?' }]))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('turn.start', (_, e) => ({ turnId: e.turnId }))
 
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
   await $.turn.start({ text: 'hi', turnId: 't1' })
   const ui = await $.ui.mount(band('terminal'))
   expect(await ui.find({ type: 'Text', text: /Panneau/ })).toBeDefined()
@@ -247,23 +251,70 @@ test('a failing CLI draws nothing of its own', async ($, on) => {
 
 test('session start moves the old cue topics into waitTopics, once', async ($, on) => {
   const calls: string[] = []
-  const sets: unknown[] = []
   on('process.run', (_, e) => (calls.push(e.argv.slice(2).join(' ')), ok(e.argv[2] === 'config-get' ? { cueTags: ['italiano', 'code-de-la-route'] } : {})))
-  on('config.set', (_, e) => (sets.push([e.key, e.value]), { value: e.value }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
 
   await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
-  expect(sets).toEqual([['oliba.waitTopics', 'italiano, code-de-la-route']])
-  expect(calls).toEqual(['config-get', 'config-set cueTagsMoved true'])
+  expect(calls).toEqual(['config-get', 'config-set waitTopics italiano, code-de-la-route', 'config-set waitTopicsMoved true', 'config-set cueTagsMoved true'])
 })
 
-test('session start leaves waitTopics alone once it is set', { options: { waitTopics: 'italiano' } }, async ($, on) => {
+test('session start leaves waitTopics alone once it is set', async ($, on) => {
   const calls: string[] = []
-  on('process.run', (_, e) => (calls.push(e.argv.slice(2).join(' ')), ok({ cueTags: ['code-de-la-route'] })))
+  on('process.run', (_, e) => (calls.push(e.argv.slice(2).join(' ')), ok({ waitTopics: 'rust', cueTags: ['code-de-la-route'] })))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
 
   await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
-  expect(calls).toEqual([])
+  expect(calls).toEqual(['config-get'])
+})
+
+test('session start folds the plugin-config waitTopics into config.json, once', { options: { waitTopics: 'italiano' } }, async ($, on) => {
+  const calls: string[] = []
+  on('process.run', (_, e) => (calls.push(e.argv.slice(2).join(' ')), ok({})))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  expect(calls).toEqual(['config-get', 'config-set waitTopics italiano', 'config-set waitTopicsMoved true', 'config-set cueTagsMoved true'])
+})
+
+test('a fold marks both sources moved, so a later clear resurrects nothing', { options: { waitTopics: 'italiano' } }, async ($, on) => {
+  const calls: string[] = []
+  const config: Record<string, unknown> = { cueTags: ['code-de-la-route'] }
+  on('process.run', (_, e) => {
+    calls.push(e.argv.slice(2).join(' '))
+    if (e.argv[2] === 'config-set') config[e.argv[3] ?? ''] = e.argv[4] === 'true' ? true : e.argv[4]
+    return ok(e.argv[2] === 'config-get' ? config : {})
+  })
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  expect(config).toMatchObject({ waitTopics: 'italiano', waitTopicsMoved: true, cueTagsMoved: true })
+
+  delete config.waitTopics
+  calls.length = 0
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  expect(calls).toEqual(['config-get'])
+})
+
+test('waitTopics as the array config-set stores is read as topics', async ($, on) => {
+  const tags: string[] = []
+  on('process.run', (_, e) => (e.argv[2] === 'due' && tags.push(e.argv.at(-1) ?? ''), ok(e.argv[2] === 'config-get' ? { waitTopics: ['italiano', 'code-de-la-route'] } : [])))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+  on('turn.start', (_, e) => ({ turnId: e.turnId }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  await $.turn.start({ text: 'hi', turnId: 't1' })
+  const ui = await $.ui.mount(band('terminal'))
+  expect(tags.sort()).toEqual(['code-de-la-route', 'italiano'])
+  await ui.unmount()
+})
+
+test('session start does not fold the plugin-config value again once moved', { options: { waitTopics: 'italiano' } }, async ($, on) => {
+  const calls: string[] = []
+  on('process.run', (_, e) => (calls.push(e.argv.slice(2).join(' ')), ok({ waitTopicsMoved: true })))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  expect(calls).toEqual(['config-get'])
 })
 
 // A pending card, nothing typed, the turn over: the band yields to the engine.

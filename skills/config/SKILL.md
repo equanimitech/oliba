@@ -7,7 +7,12 @@ description: Configure oliba - which topics the wait band draws from, and archiv
 
 ## Wait band topics
 
-The wait band's topics are the `waitTopics` option, a row in Claude Code's own `/config` menu (`oliba.waitTopics`): comma-separated tags or projects, empty for whatever is due first. Tell the user in one line to set it there; it is Claude Code's setting, not a file to edit.
+The wait band's topics are `waitTopics` in oliba's config: comma-separated tags or projects, empty for whatever is due first. Set it from the CLI, then confirm the change in one line; it takes effect next session.
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" config-set waitTopics "italiano, code-de-la-route"
+node "${CLAUDE_PLUGIN_ROOT}/lib/cli.mjs" config-unset waitTopics                            # whatever is due first
+```
 
 ## Wake the band
 

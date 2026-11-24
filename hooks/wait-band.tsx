@@ -84,22 +84,30 @@ const suggest = async ($: EngineInterface, front: string, back: string, typed: s
   }
 }
 
-export const register: Register = (on, options) => {
-  const topics = String(options.waitTopics ?? '').split(',').map(t => t.trim()).filter(Boolean)
+// config-set stores a comma value as an array, so take either shape.
+const parseTopics = (v: unknown) => (Array.isArray(v) ? v : String(v ?? '').split(',')).map(t => String(t).trim()).filter(Boolean)
 
-  // 0.19 retired the status-line cue: its topics (oliba config cueTags) become
-  // waitTopics, once, unless waitTopics is already set.
+export const register: Register = (on, options) => {
+  // waitTopics lives in oliba's own config; read at session start.
+  let topics: string[] = []
+
+  // Topics come from config.json. Two one-time moves feed it: the plugin-config
+  // row of 0.21 and earlier, and the status-line cue's cueTags retired in 0.19.
+  // Either move marks both as moved, so clearing waitTopics later stays cleared.
   on('session.start', async ($, e, next) => {
-    if (!topics.length) {
-      const config = await cli($, ['config-get'])
-      const tags: string[] = [config?.cueTags ?? []].flat().filter(Boolean)
-      if (tags.length && !config.cueTagsMoved) {
-        const value = tags.join(', ')
-        const { deny } = await $.config.set({ key: 'oliba.waitTopics', value })
-        if (deny) $.ui.toast(`oliba: set waitTopics to "${value}" in /config`)
+    const config = await cli($, ['config-get'])
+    let value = parseTopics(config?.waitTopics).join(', ')
+    if (!value) {
+      const legacy = config?.waitTopicsMoved ? '' : parseTopics(options.waitTopics).join(', ')
+      const cue = config?.cueTagsMoved ? '' : parseTopics(config?.cueTags).join(', ')
+      value = legacy || cue
+      if (value) {
+        await cli($, ['config-set', 'waitTopics', value])
+        await cli($, ['config-set', 'waitTopicsMoved', 'true'])
         await cli($, ['config-set', 'cueTagsMoved', 'true'])
       }
     }
+    topics = parseTopics(value)
     return next(e)
   })
 
