@@ -1,24 +1,20 @@
 # òliba
 
-Catalan for barn owl.
+Agent-native spaced repetition for Claude Code. Review one flashcard in the dead
+time while your coding agent works. Map a topic, learn it one skill at a time,
+keep it with FSRS, grounded in [Scott Young's Ultralearning](https://www.scotthyoung.com/blog/2026/04/29/ultralearning-ai/).
 
-Agent-native spaced repetition for Claude Code.
+Local-first. Anti-guilt. (Catalan for barn owl.)
 
-Map a topic, learn it one piece at a time, keep it with spaced repetition. Grounded in [Scott Young's Ultralearning](https://www.scotthyoung.com/blog/2026/04/29/ultralearning-ai/).
-
-Local-first. Anti-guilt.
-
-## Requirements
-
-- [Claude Code](https://claude.com/claude-code).
-- [Node.js](https://nodejs.org) 18 or newer. The current LTS is best.
-- macOS or Linux. The hooks run in a POSIX shell. Windows is untested; WSL should work.
+![The wait band: one due card above the prompt while Claude works](assets/wait-band.gif)
 
 ## Install
 
 1. In a terminal: `claude plugin marketplace add https://github.com/equanimitech/oliba.git && claude plugin install oliba@oliba`
 2. Or inside Claude Code: `/plugin marketplace add https://github.com/equanimitech/oliba.git`, then `/plugin install oliba@oliba`
 3. Restart Claude Code.
+
+Needs Claude Code, Node 18+, macOS or Linux. Windows is untested; WSL should work.
 
 ## How it works
 
@@ -44,8 +40,6 @@ Practice pages for songs moved to their own plugin, [bemtevi](https://github.com
 ## Wait band
 
 While Claude works on your prompt, one due card can sit above the prompt. Type your answer, reveal the back, then rate yourself: `1` missed, `2` shaky, `3` got it. When you typed something, Claude names a grade with a short reason, but never pre-selects it; you pick with a number. Press ctrl+x tab (or click the band) to reach it, Esc to go back to the prompt. Skip passes the card for the rest of the session, unscored. Snooze hides the whole band for an hour, the session, or until 04:00 tomorrow; say "wake the band" to end it early. One card per turn; the band leaves when the turn ends (unless you are mid-card) and returns on the next turn, and goes quiet once you rate or skip. If nothing is due, you never see it.
-
-![The wait band: one due card above the prompt while Claude works](assets/wait-band.gif)
 
 To draw cards only from some topics, set `waitTopics` with `/oliba:config` to tags or projects, comma-separated (`italiano, code-de-la-route`). Each turn picks one at random and falls back to the others. Empty means whatever is due first.
 
