@@ -1,10 +1,10 @@
-# òliba
+# oliba
 
 Agent-native spaced repetition for Claude Code. Review one flashcard in the dead
 time while your coding agent works. Map a topic, learn it one skill at a time,
 keep it with FSRS, grounded in [Scott Young's Ultralearning](https://www.scotthyoung.com/blog/2026/04/29/ultralearning-ai/).
 
-Local-first. Anti-guilt. (Catalan for barn owl.)
+Local-first. Anti-guilt.
 
 ![The wait band: one due card above the prompt while Claude works](assets/wait-band.gif)
 
