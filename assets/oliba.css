@@ -1,4 +1,4 @@
-/* òliba lesson stylesheet. Inlined into every page by `cli.mjs lesson-write`,
+/* oliba lesson stylesheet. Inlined into every page by `cli.mjs lesson-write`,
    so a lesson is one file that works offline and can be shared alone.
    No web fonts, no remote images, no imports: nothing is fetched. */
 
@@ -7,7 +7,7 @@
   --ink: #26221d;
   --muted: #6d655a;
   --rule: #e4dccd;
-  --accent: #8a5a2b;   /* barn-owl umber */
+  --accent: #8a5a2b;   /* umber */
   --wash: #f3ecdf;
   --right: #2f6b3a;
   --right-wash: #e6f1e4;
