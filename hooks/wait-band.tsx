@@ -84,28 +84,26 @@ const suggest = async ($: EngineInterface, front: string, back: string, typed: s
   }
 }
 
-const parseTopics = (v: unknown) => String(v ?? '').split(',').map(t => t.trim()).filter(Boolean)
+// config-set stores a comma value as an array, so take either shape.
+const parseTopics = (v: unknown) => (Array.isArray(v) ? v : String(v ?? '').split(',')).map(t => String(t).trim()).filter(Boolean)
 
 export const register: Register = (on, options) => {
   // waitTopics lives in oliba's own config; read at session start.
   let topics: string[] = []
 
   // Topics come from config.json. Two one-time moves feed it: the plugin-config
-  // row of 0.21 and earlier (waitTopicsMoved), and the status-line cue's
-  // cueTags retired in 0.19 (cueTagsMoved). Neither runs once waitTopics is set.
+  // row of 0.21 and earlier, and the status-line cue's cueTags retired in 0.19.
+  // Either move marks both as moved, so clearing waitTopics later stays cleared.
   on('session.start', async ($, e, next) => {
     const config = await cli($, ['config-get'])
-    let value = String(config?.waitTopics ?? '')
-    const legacy = String(options.waitTopics ?? '').trim()
-    const tags: string[] = [config?.cueTags ?? []].flat().filter(Boolean)
-    if (!parseTopics(value).length) {
-      if (legacy && !config?.waitTopicsMoved) {
-        value = legacy
+    let value = parseTopics(config?.waitTopics).join(', ')
+    if (!value) {
+      const legacy = config?.waitTopicsMoved ? '' : parseTopics(options.waitTopics).join(', ')
+      const cue = config?.cueTagsMoved ? '' : parseTopics(config?.cueTags).join(', ')
+      value = legacy || cue
+      if (value) {
         await cli($, ['config-set', 'waitTopics', value])
         await cli($, ['config-set', 'waitTopicsMoved', 'true'])
-      } else if (tags.length && !config?.cueTagsMoved) {
-        value = tags.join(', ')
-        await cli($, ['config-set', 'waitTopics', value])
         await cli($, ['config-set', 'cueTagsMoved', 'true'])
       }
     }
