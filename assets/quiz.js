@@ -1,4 +1,4 @@
-// òliba quiz: instant feedback inside the page. No network, no storage.
+// oliba quiz: instant feedback inside the page. No network, no storage.
 // Inlined into every lesson by `cli.mjs lesson-write`.
 //
 // Choice:  <fieldset class="quiz" data-answer="b">
