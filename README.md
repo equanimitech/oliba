@@ -45,6 +45,8 @@ Practice pages for songs moved to their own plugin, [bemtevi](https://github.com
 
 While Claude works on your prompt, one due card can sit above the prompt. Type your answer, reveal the back, then rate yourself: `1` missed, `2` shaky, `3` got it. When you typed something, Claude names a grade with a short reason, but never pre-selects it; you pick with a number. Press ctrl+x tab (or click the band) to reach it, Esc to go back to the prompt. Skip passes the card for the rest of the session, unscored. Snooze hides the whole band for an hour, the session, or until 04:00 tomorrow; say "wake the band" to end it early. One card per turn; the band leaves when the turn ends (unless you are mid-card) and returns on the next turn, and goes quiet once you rate or skip. If nothing is due, you never see it.
 
+![The wait band: one due card above the prompt while Claude works](assets/wait-band.gif)
+
 To draw cards only from some topics, set `waitTopics` with `/oliba:config` to tags or projects, comma-separated (`italiano, code-de-la-route`). Each turn picks one at random and falls back to the others. Empty means whatever is due first.
 
 The band needs a Claude Code build that loads hooks modules (mods): the terminal and the desktop app's Code tab. On the mobile app it shows Reveal only, with no field to type in.
